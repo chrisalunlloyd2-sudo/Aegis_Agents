@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini - Canadian Ultra</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #131314; color: #e3e3e3; display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 280px; background: #1e1f20; display: flex; flex-direction: column; padding: 15px 10px; box-sizing: border-box; border-right: 1px solid #282a2c; }
+        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; background: #131314; }
+        #header { padding: 15px 25px; font-size: 22px; color: #e3e3e3; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #282a2c; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 30px; scroll-behavior: smooth; }
+        .message { display: flex; gap: 15px; max-width: 100%; line-height: 1.6; font-size: 16px; position: relative; }
+        .message.user { flex-direction: row-reverse; }
+        .message.user .bubble { background: #282a2c; border-radius: 20px 20px 4px 20px; padding: 12px 20px; max-width: 70%; color: #e3e3e3; }
+        .message.bot .bubble { background: transparent; padding: 0; max-width: 85%; color: #e3e3e3; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-avatar { background: #8B0000; color: white; font-weight: bold; font-size: 14px; }
+        .bot-avatar { color: #a8c7fa; font-size: 28px; }
+        #input-area { padding: 20px 15% 30px 15%; background: #131314; }
+        .input-box { background: #1e1f20; border-radius: 30px; display: flex; padding: 15px 20px; align-items: center; gap: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        .input-box input { flex: 1; background: transparent; border: none; color: #e3e3e3; font-size: 16px; outline: none; }
+        .input-box button { background: transparent; border: none; color: #c4c7c5; cursor: pointer; font-size: 20px; outline: none; }
+        #status-dot { width: 12px; height: 12px; background: #8B0000; border-radius: 50%; display: inline-block; margin-left: 10px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .brand { font-family: 'Product Sans', 'Segoe UI', sans-serif; font-size: 22px; display: flex; align-items: center; gap: 5px; }
+        .brand span { color: #a8c7fa; }
+        .thoughts { font-style: italic; color: #8e918f; font-size: 14px; margin-bottom: 8px; display: block; padding-left: 5px; border-left: 2px solid #3c4043; }
+        .mode-switch { background: #282a2c; padding: 10px; border-radius: 15px; margin-bottom: 20px; font-size: 13px; }
+        .mode-switch select { background: transparent; color: #a8c7fa; border: none; outline: none; font-size: 13px; width: 100%; cursor: pointer; }
+        .action-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .action-btn { background: #282a2c; border: none; color: #8e918f; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px; transition: color 0.2s; }
+        .action-btn:hover { color: #e3e3e3; }
+        .action-btn.active { color: #a8c7fa; }
+        .delete-btn { color: #8B0000 !important; }
+        h1, p { text-align: center; color: #8e918f; font-size: 12px; margin: 2px; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div style="padding: 10px 0 20px 10px; font-weight: bold; color: #a8c7fa; font-size: 18px;">AEGIS-DIMON</div>
+        <div class="mode-switch">
+            <div style="color: #8e918f; margin-bottom: 5px;">Kernel Configuration:</div>
+            <select id="kernel-mode">
+                <option value="auto">Auto-Failover (5-9s)</option>
+                <option value="cloud">Cloud Shield (Teacher)</option>
+                <option value="local">Local Hardware (Student)</option>
+            </select>
+        </div>
+        <div style="padding: 10px; font-size: 12px; color: #8e918f;">
+            RAG Status: <span id="rag-status" style="color: #5f6368;">Checking...</span>
+        </div>
+        <div style="margin-top: 20px;">
+            <button class="action-btn delete-btn" onclick="clearFullConversation()" style="width: 100%; border-radius: 20px; padding: 10px;">Delete Manifold Session</button>
+        </div>
+        <div style="flex: 1;"></div>
+        <div style="padding: 10px; font-size: 11px; color: #5f6368;">Moltbook v3.8 Alpha</div>
+    </div>
+
+    <div id="main-view">
+        <div id="header">
+            <div class="brand">Gemini <span>Ultra</span> <div id="status-dot"></div></div>
+            <div class="avatar user-avatar">VPR</div>
+        </div>
+        
+        <div id="chat-container">
+            <div class="message bot">
+                <div class="avatar bot-avatar">✨</div>
+                <div>
+                    <div class="bubble">Viper, Kernel recognized. 3D Flow active. Manifold v3.8 stabilized. Feedback loops active.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="input-area">
+            <h1>Hello World!</h1>
+            <p>This is my first HTML file.</p>
+            <div class="input-box" style="margin-top: 15px;">
+                <input type="text" id="chat-input" placeholder="Enter a prompt here" autocomplete="off">
+                <button id="send-btn" title="Send Message">➤</button>
+                <button id="retry-btn" title="Regenerate Response" style="margin-left: 10px; font-size: 18px;">↻</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const chatContainer = document.getElementById('chat-container');
+        const kernelMode = document.getElementById('kernel-mode');
+        const statusDot = document.getElementById('status-dot');
+        const ragStatus = document.getElementById('rag-status');
+        
+        let lastPrompt = "";
+
+        async function pollStatus() {
+            try {
+                const healthRes = await fetch('/api/health');
+                const health = await healthRes.json();
+                ragStatus.innerText = `RAG: ${health.rag_status}`;
+                ragStatus.style.color = health.rag_status === "ONLINE" ? "#a8c7fa" : "#8B0000";
+
+                const sigRes = await fetch('/api/signal/status');
+                const state = await sigRes.json();
+                if (state.active) {
+                    statusDot.style.background = "#FF0000";
+                    statusDot.style.boxShadow = "0 0 15px #FF0000";
+                } else {
+                    statusDot.style.background = "#8B0000";
+                    statusDot.style.boxShadow = "none";
+                }
+            } catch (e) {
+                ragStatus.innerText = "OFFLINE";
+                ragStatus.style.color = "#8B0000";
+            }
+        }
+        setInterval(pollStatus, 5000);
+
+        function addMessage(text, isUser, thoughts = null, messageId = null) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            let avatarHtml = isUser ? '<div class="avatar user-avatar">VPR</div>' : '<div class="avatar bot-avatar">✨</div>';
+            
+            let content = '';
+            if (thoughts) content += `<span class="thoughts">${thoughts}</span>`;
+            content += `<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
+            
+            if (!isUser && text !== "...") {
+                content += `
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="sendFeedback(${messageId}, 1, this)">👍</button>
+                        <button class="action-btn" onclick="sendFeedback(${messageId}, -1, this)">👎</button>
+                        <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">↻</button>
+                    </div>
+                `;
+            }
+            
+            msgDiv.innerHTML = `${avatarHtml}<div>${content}</div>`;
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return msgDiv;
+        }
+
+        async function sendFeedback(id, score, btn) {
+            try {
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message_id: id || 0, score: score })
+                });
+                const btns = btn.parentElement.querySelectorAll('.action-btn');
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            } catch (e) {}
+        }
+
+        async function clearFullConversation() {
+            if (!confirm("Are you sure you want to delete the entire manifold session?")) return;
+            try {
+                await fetch(`/api/conversation/local`, { method: 'DELETE' });
+                location.reload();
+            } catch (e) {}
+        }
+
+        async function sendMessage(retry = false) {
+            const text = retry ? lastPrompt : input.value.trim();
+            if (!text) return;
+            if (!retry) {
+                addMessage(text, true);
+                lastPrompt = text;
+            }
+            input.value = '';
+            
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = `message bot`;
+            botMsgDiv.innerHTML = `<div class="avatar bot-avatar">✨</div><div class="bot-content"></div>`;
+            chatContainer.appendChild(botMsgDiv);
+            const contentArea = botMsgDiv.querySelector('.bot-content');
+            contentArea.innerHTML = `<div class="bubble">...</div>`;
+
+            try {
+                const response = await fetch('/api/aegis/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: text,
+                        mode: kernelMode.value,
+                        retry: retry
+                    })
+                });
+
+                if (response.headers.get('content-type')?.includes('text/event-stream')) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let fullText = "";
+                    let thoughts = "";
+                    contentArea.innerHTML = "";
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n');
+                        
+                        for (const line of lines) {
+                            if (!line.trim()) continue;
+                            try {
+                                const data = JSON.parse(line);
+                                if (data.thoughts) {
+                                    thoughts = data.thoughts;
+                                    contentArea.innerHTML = `<span class="thoughts">${thoughts}</span><div class="bubble">...</div>`;
+                                }
+                                if (data.reply_chunk) {
+                                    fullText += data.reply_chunk;
+                                    const bubble = contentArea.querySelector('.bubble') || document.createElement('div');
+                                    bubble.className = 'bubble';
+                                    bubble.innerHTML = fullText.replace(/\n/g, '<br>');
+                                    if (!contentArea.querySelector('.bubble')) contentArea.appendChild(bubble);
+                                }
+                                if (data.error) {
+                                    contentArea.innerHTML += `<div class="bubble" style="color: #8B0000;">⚠️ ${data.error}</div>`;
+                                }
+                            } catch (e) {
+                                if (line.startsWith("[CLOUD]")) {
+                                    contentArea.innerHTML = `<div class="bubble">${line.replace(/\n/g, '<br>')}</div>`;
+                                }
+                            }
+                        }
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
+                    // Add buttons after stream completes
+                    const btnDiv = document.createElement('div');
+                    btnDiv.className = 'action-btns';
+                    btnDiv.innerHTML = `
+                        <button class="action-btn" onclick="sendFeedback(0, 1, this)">👍</button>
+                        <button class="action-btn" onclick="sendFeedback(0, -1, this)">👎</button>
+                        <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">↻</button>
+                    `;
+                    contentArea.appendChild(btnDiv);
+                } else {
+                    const data = await response.json();
+                    contentArea.innerHTML = "";
+                    if (data.thoughts) contentArea.innerHTML += `<span class="thoughts">${data.thoughts}</span>`;
+                    contentArea.innerHTML += `<div class="bubble">${data.reply.replace(/\n/g, '<br>')}</div>`;
+                    contentArea.innerHTML += `
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="sendFeedback(0, 1, this)">👍</button>
+                            <button class="action-btn" onclick="sendFeedback(0, -1, this)">👎</button>
+                            <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">↻</button>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                contentArea.innerHTML = `<div class="bubble">⚠️ Shield Down. Re-mapping manifold...</div>`;
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        sendBtn.onclick = () => sendMessage();
+        retryBtn.onclick = () => sendMessage(true);
+        input.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    </script>
+</body>
+</html>

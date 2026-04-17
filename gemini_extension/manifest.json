@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Aegis-DIMON Gemini Optimizer",
+  "version": "1.0",
+  "description": "Native code-level Dark Theme and TimescaleDB sync for VIPER.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "host_permissions": ["http://localhost:5000/*"]
+}

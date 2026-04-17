@@ -1,0 +1,45 @@
+# Environment and secrets
+.env
+*.log
+tunnel.log
+tunnel_new.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+gemini_bridge.db*
+
+# Memory and data directories
+Aegis_Memory/
+crawler_db/
+agentic_jobs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+temp_url.txt
+CLOUDFLARE_URL.txt
+CLOUDFLARE.txt
+
+# Large files
+*.mp4
+*.avi
+*.mov
+*.zip
+*.tar.gz
