@@ -1,0 +1,18 @@
+Shape:
+- clear structs/enums
+- keep ownership simple first
+- Result for fallible work
+- small modules
+
+Files:
+- src/main.rs or lib.rs
+- tests/*.rs
+
+Verify:
+- cargo test
+- cargo run
+
+Avoid:
+- premature lifetimes
+- cloning around design issues
+- panics for normal errors

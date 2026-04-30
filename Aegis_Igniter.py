@@ -6,7 +6,7 @@ import webbrowser
 from pathlib import Path
 
 # AEGIS PROJECT PATH
-PROJECT_ROOT = Path(r"C:\Users\viper\AIEngine")
+PROJECT_ROOT = Path(os.getenv("AEGIS_ENGINE_ROOT", Path.home() / "AIEngine"))
 sys.path.append(str(PROJECT_ROOT))
 
 def ignite():

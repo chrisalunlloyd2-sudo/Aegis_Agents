@@ -33,6 +33,10 @@ def initialize_dspy(model_name="gemini/gemini-1.5-pro"):
     """
     Initializes the DSPy compiler with the Gemini Teacher.
     """
+    google_paid_enabled = os.getenv("AEGIS_ENABLE_GOOGLE_PAID", "0").strip().lower() in {"1", "true", "yes", "on"}
+    if not google_paid_enabled:
+        print("⚠️ [DSPY] Google paid teacher is disabled by policy. Skipping DSPy cloud initialization.")
+        return None
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         print("❌ [DSPY] Missing API Key. Manifold cannot compile.")

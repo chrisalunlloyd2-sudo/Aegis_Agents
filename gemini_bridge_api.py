@@ -27,9 +27,13 @@ load_dotenv()
 
 # ===== CONFIG =====
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-CURSOR_EXE = r"C:\Users\viper\AppData\Local\Programs\cursor\Cursor.exe"
+USER_HOME = os.path.expanduser("~")
+CURSOR_EXE = os.getenv(
+    "AEGIS_CURSOR_EXE",
+    os.path.join(USER_HOME, "AppData", "Local", "Programs", "cursor", "Cursor.exe"),
+)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///gemini_bridge.db")
-AUTH_TOKEN = os.getenv("AUTH_TOKEN", "gemini_bridge_token_123")
+AUTH_TOKEN = os.getenv("AUTH_TOKEN", "change_me_for_remote_access")
 REMOTE_MODE = os.getenv("REMOTE_ACCESS", "False").lower() == "true"
 
 # ===== Flask Setup =====
@@ -516,7 +520,7 @@ def trigger_cursor_handover(task_message):
     """Open Cursor and log the task"""
     print(f"[!] HANDOVER: Task sent to Cursor queue")
     try:
-        subprocess.Popen([CURSOR_EXE, "C:\\Users\\viper"])
+        subprocess.Popen([CURSOR_EXE, os.getenv("AEGIS_CURSOR_WORKSPACE", USER_HOME)])
         return True
     except Exception as e:
         print(f"[HANDOVER ERROR] {e}")
@@ -849,7 +853,7 @@ def aegis_chat():
         return jsonify({"reply": f"🏎️💨 [BROWSER AUTOMATION] I've opened the manifold at: {url}. Your VRAM is safe."})
 
     # 2. LIQUID MEMORY INJECTION
-    liquid_db_path = r"C:\Users\viper\liquid_memory.json"
+    liquid_db_path = os.getenv("AEGIS_LIQUID_MEMORY_PATH", os.path.join(USER_HOME, "liquid_memory.json"))
     liquid_context = ""
     if os.path.exists(liquid_db_path):
         try:
@@ -863,7 +867,10 @@ def aegis_chat():
     print(f"🧠 [ROUTER] High-Logic routing to Aegis: {message}")
     
     # Absolute path to the gemini batch file
-    gemini_cmd_path = r"C:\Users\viper\AppData\Roaming\npm\gemini.cmd"
+    gemini_cmd_path = os.getenv(
+        "AEGIS_GEMINI_CMD",
+        os.path.join(USER_HOME, "AppData", "Roaming", "npm", "gemini.cmd"),
+    )
     
     # Use shell=False with a list for direct execution
     args = [gemini_cmd_path, "-p", message, "--approval-mode=yolo", "--resume", "latest"]
@@ -876,7 +883,8 @@ def aegis_chat():
         stderr = result.stderr or ""
         
         # DEBUG LOGGING
-        with open(r"C:\Users\viper\aegis_bridge_debug.log", "a", encoding="utf-8") as f:
+        debug_log = os.getenv("AEGIS_BRIDGE_DEBUG_LOG", os.path.join(USER_HOME, "aegis_bridge_debug.log"))
+        with open(debug_log, "a", encoding="utf-8") as f:
             f.write(f"\n--- {datetime.now()} ---\n")
             f.write(f"MESSAGE: {message}\n")
             f.write(f"STDOUT: {stdout}\n")

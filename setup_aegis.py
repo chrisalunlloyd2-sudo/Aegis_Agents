@@ -38,12 +38,12 @@ def check_ollama():
         result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=10)
         if result.returncode == 0:
             print_status("Ollama is installed and running", "OK")
-            if "gemma2:2b" in result.stdout:
-                print_status("Gemma 2B model found", "OK")
+            if "aegis-gemma2-abliterated:2b-q8" in result.stdout:
+                print_status("Abliterated Gemma 2B model found", "OK")
                 return True
             else:
-                print_status("Gemma 2B model not found", "WARN")
-                print_status("Run: ollama pull gemma2:2b", "INFO")
+                print_status("Abliterated Gemma 2B model not found", "WARN")
+                print_status("Run: ollama create aegis-gemma2-abliterated:2b-q8 -f vendor/models/Modelfile.gemma2-abliterated-q8", "INFO")
                 return False
         return False
     except FileNotFoundError:

@@ -3,82 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini - Canadian Ultra</title>
+    <title>AEGIS Project Dashboard</title>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #131314; color: #e3e3e3; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 280px; background: #1e1f20; display: flex; flex-direction: column; padding: 15px 10px; box-sizing: border-box; border-right: 1px solid #282a2c; }
-        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; background: #131314; }
-        #header { padding: 15px 25px; font-size: 22px; color: #e3e3e3; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #282a2c; }
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 30px; scroll-behavior: smooth; }
+        :root {
+            --bg: #131314;
+            --panel: #1e1f20;
+            --panel-soft: #282a2c;
+            --line: #323436;
+            --text: #e3e3e3;
+            --muted: #8e918f;
+            --accent: #a8c7fa;
+            --accent-soft: rgba(168, 199, 250, 0.14);
+            --danger: #8b0000;
+            --success: #7bd389;
+        }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at top right, rgba(168, 199, 250, 0.10), transparent 25%), var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 320px; background: #1a1b1d; display: flex; flex-direction: column; padding: 18px 14px; box-sizing: border-box; border-right: 1px solid var(--line); gap: 14px; overflow-y: auto; }
+        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; background: transparent; min-width: 0; }
+        #header { padding: 16px 24px; font-size: 22px; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); background: rgba(19, 19, 20, 0.84); backdrop-filter: blur(10px); }
+        #dashboard-panel { padding: 18px 24px 8px 24px; border-bottom: 1px solid rgba(255,255,255,0.04); overflow-y: auto; max-height: 330px; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px 15%; display: flex; flex-direction: column; gap: 24px; scroll-behavior: smooth; }
         .message { display: flex; gap: 15px; max-width: 100%; line-height: 1.6; font-size: 16px; position: relative; }
         .message.user { flex-direction: row-reverse; }
-        .message.user .bubble { background: #282a2c; border-radius: 20px 20px 4px 20px; padding: 12px 20px; max-width: 70%; color: #e3e3e3; }
-        .message.bot .bubble { background: transparent; padding: 0; max-width: 85%; color: #e3e3e3; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .user-avatar { background: #8B0000; color: white; font-weight: bold; font-size: 14px; }
-        .bot-avatar { color: #a8c7fa; font-size: 28px; }
-        #input-area { padding: 20px 15% 30px 15%; background: #131314; }
-        .input-box { background: #1e1f20; border-radius: 30px; display: flex; padding: 15px 20px; align-items: center; gap: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-        .input-box input { flex: 1; background: transparent; border: none; color: #e3e3e3; font-size: 16px; outline: none; }
-        .input-box button { background: transparent; border: none; color: #c4c7c5; cursor: pointer; font-size: 20px; outline: none; }
-        #status-dot { width: 12px; height: 12px; background: #8B0000; border-radius: 50%; display: inline-block; margin-left: 10px; animation: pulse 2s infinite; }
+        .message.user .bubble { background: var(--panel-soft); border-radius: 20px 20px 4px 20px; padding: 12px 20px; max-width: 72%; color: var(--text); }
+        .message.bot .bubble { background: transparent; padding: 0; max-width: 86%; color: var(--text); }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-avatar { background: linear-gradient(180deg, #8b0000, #5d0b0b); color: white; font-weight: bold; font-size: 14px; }
+        .bot-avatar { color: var(--accent); font-size: 22px; background: rgba(168, 199, 250, 0.10); }
+        #input-area { padding: 18px 15% 26px 15%; background: rgba(19, 19, 20, 0.84); border-top: 1px solid rgba(255,255,255,0.04); }
+        .input-box { background: var(--panel); border-radius: 28px; display: flex; padding: 14px 18px; align-items: center; gap: 12px; box-shadow: 0 10px 24px rgba(0,0,0,0.24); border: 1px solid var(--line); }
+        .input-box input, .control-input, .control-select { width: 100%; background: rgba(19,19,20,0.86); border: 1px solid var(--line); color: var(--text); font-size: 14px; outline: none; border-radius: 14px; padding: 12px 14px; }
+        .input-box input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 16px; padding: 0; }
+        .input-box button, .panel-btn { background: transparent; border: 1px solid var(--line); color: #c4c7c5; cursor: pointer; font-size: 14px; outline: none; border-radius: 999px; padding: 10px 14px; }
+        .panel-btn.primary { background: var(--accent-soft); border-color: rgba(168,199,250,0.3); color: var(--accent); }
+        .panel-btn.danger { border-color: rgba(139,0,0,0.35); color: #ffb0b0; }
+        #status-dot { width: 12px; height: 12px; background: var(--danger); border-radius: 50%; display: inline-block; margin-left: 10px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        .brand { font-family: 'Product Sans', 'Segoe UI', sans-serif; font-size: 22px; display: flex; align-items: center; gap: 5px; }
-        .brand span { color: #a8c7fa; }
-        .thoughts { font-style: italic; color: #8e918f; font-size: 14px; margin-bottom: 8px; display: block; padding-left: 5px; border-left: 2px solid #3c4043; }
-        .mode-switch { background: #282a2c; padding: 10px; border-radius: 15px; margin-bottom: 20px; font-size: 13px; }
-        .mode-switch select { background: transparent; color: #a8c7fa; border: none; outline: none; font-size: 13px; width: 100%; cursor: pointer; }
+        .brand { font-family: 'Product Sans', 'Segoe UI', sans-serif; font-size: 22px; display: flex; align-items: center; gap: 8px; }
+        .brand span { color: var(--accent); }
+        .project-pill { padding: 8px 12px; border-radius: 999px; background: var(--accent-soft); border: 1px solid rgba(168,199,250,0.22); color: var(--accent); font-size: 12px; }
+        .thoughts { font-style: italic; color: var(--muted); font-size: 13px; margin-bottom: 8px; display: block; padding-left: 8px; border-left: 2px solid #3c4043; }
+        .bubble pre { background: rgba(19,19,20,0.92); border: 1px solid var(--line); border-radius: 14px; padding: 12px; overflow-x: auto; white-space: pre-wrap; color: #d7e9ff; }
+        .bubble code { background: rgba(168,199,250,0.10); border: 1px solid rgba(168,199,250,0.15); border-radius: 8px; padding: 2px 6px; color: #d7e9ff; }
+        .bubble pre code { background: transparent; border: none; padding: 0; }
+        .bubble mark { background: rgba(251, 188, 5, 0.24); color: #fff2bd; padding: 1px 4px; border-radius: 4px; }
+        .bubble .tok-keyword { color: #ff9db1; font-weight: 600; }
+        .bubble .tok-string { color: #9fe6b8; }
+        .bubble .tok-number { color: #f8c67a; }
+        .bubble .tok-comment { color: #8e918f; font-style: italic; }
+        .bubble .tok-operator { color: #a8c7fa; }
+        .bubble .tok-ident { color: #f2f2f2; }
+        .sidebar-card, .dashboard-card { background: linear-gradient(180deg, rgba(40,42,44,0.94), rgba(30,31,32,0.94)); border: 1px solid var(--line); border-radius: 18px; padding: 14px; }
+        .sidebar-heading, .card-heading { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+        .stack { display: flex; flex-direction: column; gap: 10px; }
+        .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .metric { background: rgba(19,19,20,0.68); border: 1px solid rgba(255,255,255,0.03); border-radius: 14px; padding: 10px; }
+        .metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+        .metric-value { font-size: 18px; font-weight: 600; }
+        .metric-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+        .span-4 { grid-column: span 4; }
+        .span-6 { grid-column: span 6; }
+        .span-8 { grid-column: span 8; }
+        .span-12 { grid-column: span 12; }
+        .list { display: flex; flex-direction: column; gap: 10px; }
+        .list-item { background: rgba(19,19,20,0.62); border: 1px solid rgba(255,255,255,0.03); border-radius: 14px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
+        .list-item strong { display: block; color: var(--accent); margin-bottom: 5px; font-size: 13px; }
+        .empty-state { color: var(--muted); font-size: 13px; }
         .action-btns { display: flex; gap: 10px; margin-top: 10px; }
-        .action-btn { background: #282a2c; border: none; color: #8e918f; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px; transition: color 0.2s; }
-        .action-btn:hover { color: #e3e3e3; }
-        .action-btn.active { color: #a8c7fa; }
-        .delete-btn { color: #8B0000 !important; }
-        h1, p { text-align: center; color: #8e918f; font-size: 12px; margin: 2px; }
+        .action-btn { background: var(--panel-soft); border: none; color: var(--muted); padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px; transition: color 0.2s; }
+        .action-btn:hover { color: var(--text); }
+        .action-btn.active { color: var(--accent); }
+        .composer-meta { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-bottom: 10px; color: var(--muted); font-size: 12px; }
+        .prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .prompt-pill { padding: 7px 12px; border-radius: 999px; background: rgba(168,199,250,0.08); border: 1px solid rgba(168,199,250,0.15); color: var(--muted); font-size: 12px; cursor: pointer; }
+        .prompt-pill:hover { color: var(--accent); }
+
+        .training-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr); gap: 12px; }
+        .training-textarea { min-height: 78px; resize: vertical; font-family: inherit; line-height: 1.45; }
+        .training-control-grid { display: grid; grid-template-columns: 1fr 92px 92px 92px; gap: 8px; margin-top: 10px; }
+        .training-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .training-chart { height: 112px; border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; background: rgba(19,19,20,0.48); overflow: hidden; margin-top: 10px; }
+        .training-chart svg { width: 100%; height: 100%; display: block; }
+        .timescale-map { height: 220px; border: 1px solid rgba(168,199,250,0.10); border-radius: 18px; background: radial-gradient(circle at 30% 20%, rgba(168,199,250,0.12), transparent 34%), linear-gradient(145deg, rgba(7,16,28,0.72), rgba(19,19,20,0.76)); overflow: hidden; margin-top: 10px; position: relative; }
+        .timescale-map svg { width: 100%; height: 100%; display: block; }
+        .timescale-legend { display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 11px; margin-top: 6px; }
+        .timescale-legend span::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 999px; margin-right: 5px; background: var(--dot); }
+        .training-status { color: var(--muted); font-size: 12px; margin-top: 8px; min-height: 18px; }
+        .training-status.ok { color: var(--success); }
+        .training-status.warn { color: #f8c67a; }
+        .terminal-output { margin-top: 10px; min-height: 170px; max-height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-family: "Cascadia Mono", "Consolas", monospace; font-size: 12px; line-height: 1.45; color: #d7e3ff; background: rgba(6,12,20,0.78); border: 1px solid rgba(168,199,250,0.14); border-radius: 14px; padding: 12px; }
+        .terminal-output .muted { color: var(--muted); }
+        .training-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+        @media (max-width: 1300px) { .training-layout, .training-control-grid, .training-kpi { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { body { flex-direction: column; overflow: auto; } #sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line); } #dashboard-panel { max-height: none; } .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; } #chat-container, #input-area { padding-left: 18px; padding-right: 18px; } }
+
+        .typing-indicator { display: flex; align-items: center; gap: 5px; padding: 2px 4px; height: 20px; }
+        .typing-indicator span { width: 6px; height: 6px; background-color: var(--accent); border-radius: 50%; animation: typingBlink 1.4s infinite both; }
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBlink { 0% { opacity: 0.2; transform: scale(0.8); } 20% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.2; transform: scale(0.8); } }
+
+
+        .qwen-thought { margin-bottom: 12px; background: rgba(168,199,250,0.05); border: 1px solid rgba(168,199,250,0.15); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+        .qwen-thought summary { cursor: pointer; font-weight: 600; color: var(--accent); outline: none; }
+        .qwen-thought .qwen-inner { margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--line); }
+
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <div style="padding: 10px 0 20px 10px; font-weight: bold; color: #a8c7fa; font-size: 18px;">AEGIS-DIMON</div>
-        <div class="mode-switch">
-            <div style="color: #8e918f; margin-bottom: 5px;">Kernel Configuration:</div>
-            <select id="kernel-mode">
-                <option value="auto">Auto-Failover (5-9s)</option>
-                <option value="cloud">Cloud Shield (Teacher)</option>
-                <option value="local">Local Hardware (Student)</option>
+        <div class="sidebar-card">
+            <div class="sidebar-heading">Kernel Identity</div>
+            <div style="font-weight: bold; color: #a8c7fa; font-size: 20px; margin-bottom: 6px;">AEGIS-DIMON</div>
+            <div class="empty-state">Project cockpit for timescale memory, vector retrieval, research loops, and SOP-driven automation.</div>
+        </div>
+
+        <div class="sidebar-card">
+            <div class="sidebar-heading">Project Lane</div>
+            <div class="stack">
+                <label for="project-input" style="font-size: 12px; color: #8e918f;">Active project</label>
+                <input id="project-input" class="control-input" type="text" value="general" placeholder="e.g. compiler, payroll, dashboard">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="panel-btn primary" id="refresh-dashboard-btn">Refresh Dashboard</button>
+                    <button class="panel-btn" id="focus-research-btn">Prep Research</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-card">
+            <div class="sidebar-heading">Kernel Configuration</div>
+            <select id="kernel-mode" class="control-select">
+                <option value="auto">Auto: ARMv4 First</option>
+                <option value="alice">ARMv4 Cloud: 16GB Logic Core</option>
+                <option value="cloud">CLI Cloud: Gemini Agent Port</option>
+                <option value="local">Local Hands: Desktop Logic</option>
+                <option value="xeon">Xeon Swarm: (Later Upgrade)</option>
             </select>
         </div>
-        <div style="padding: 10px; font-size: 12px; color: #8e918f;">
-            RAG Status: <span id="rag-status" style="color: #5f6368;">Checking...</span>
+
+        <div class="sidebar-card">
+            <div class="sidebar-heading">Runtime Telemetry</div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Memory</div>
+                    <div class="metric-value" id="memory-status-value">Checking</div>
+                    <div class="metric-sub" id="memory-status-sub">Timescale</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Vector DB</div>
+                    <div class="metric-value" id="vector-status-value">Checking</div>
+                    <div class="metric-sub" id="vector-status-sub">Qdrant</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Kernel</div>
+                    <div class="metric-value" id="kernel-status-value">Checking</div>
+                    <div class="metric-sub" id="kernel-status-sub">Route</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Signal</div>
+                    <div class="metric-value" id="signal-status-value">Idle</div>
+                    <div class="metric-sub" id="signal-status-sub">Desktop status</div>
+                </div>
+            </div>
         </div>
-        <div style="margin-top: 20px;">
-            <button class="action-btn delete-btn" onclick="clearFullConversation()" style="width: 100%; border-radius: 20px; padding: 10px;">Delete Manifold Session</button>
-        </div>
+
         <div style="flex: 1;"></div>
-        <div style="padding: 10px; font-size: 11px; color: #5f6368;">Moltbook v3.8 Alpha</div>
+        <div class="sidebar-card">
+            <button class="panel-btn" type="button" style="width: 100%;" disabled>Manual session deletion disabled</button>
+            <div style="padding-top: 10px; font-size: 11px; color: #5f6368;">Moltbook v3.8 Alpha / Project Ops Console</div>
+        </div>
     </div>
 
     <div id="main-view">
         <div id="header">
-            <div class="brand">Gemini <span>Ultra</span> <div id="status-dot"></div></div>
-            <div class="avatar user-avatar">VPR</div>
+            <div class="brand">AEGIS <span>Project Dashboard</span> <div id="status-dot"></div></div>
+            <div class="project-pill" id="active-project-pill">general</div>
         </div>
-        
-        <div id="chat-container">
-            <div class="message bot">
-                <div class="avatar bot-avatar">✨</div>
-                <div>
-                    <div class="bubble">Viper, Kernel recognized. 3D Flow active. Manifold v3.8 stabilized. Feedback loops active.</div>
+
+        <div id="dashboard-panel">
+            <div class="dashboard-grid">
+                <div class="dashboard-card span-4">
+                    <div class="sidebar-heading">Project Snapshot</div>
+                    <div class="list-item" style="margin-bottom: 12px;">
+                        <strong id="project-snapshot-title">general</strong>
+                        Keep coding, research, secrets, and automation notes scoped to one project lane.
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric">
+                            <div class="metric-label">Timescale Files</div>
+                            <div class="metric-value" id="project-timescale-count">0</div>
+                            <div class="metric-sub">Readable project memory</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Vector Points</div>
+                            <div class="metric-value" id="project-vector-count">0</div>
+                            <div class="metric-sub">Hybrid retrieval</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Secrets Keys</div>
+                            <div class="metric-value" id="project-secret-count">0</div>
+                            <div class="metric-sub">Stored credentials</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Reasoning Notes</div>
+                            <div class="metric-value" id="project-reasoning-count">0</div>
+                            <div class="metric-sub">Visible planning notes</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="dashboard-card span-8">
+                    <div class="sidebar-heading">Testing & Training</div>
+                    <div class="training-layout">
+                        <div>
+                            <textarea id="training-prompt" class="control-input training-textarea" placeholder="Describe the build/test/research probe to run">Build a tiny Python program that creates another runnable Python program, runs that generated program, and reports pass/fail.</textarea>
+                            <div class="training-control-grid">
+                                <select id="training-modifier" class="control-select">
+                                    <option value="aider_terminal">Aider terminal evidence</option>
+                                    <option value="programs_make_programs">Programs make programs</option>
+                                    <option value="deployment_confidence">Deployment confidence gate</option>
+                                    <option value="more_tests">Do more testing</option>
+                                    <option value="more_research">Do more research first</option>
+                                    <option value="more_code">Create more working code</option>
+                                    <option value="d8_flat">D8 / Flat Java compression</option>
+                                </select>
+                                <input id="training-iterations" class="control-input" type="number" min="1" max="9" value="3" title="Iterations">
+                                <input id="training-hours" class="control-input" type="number" min="1" max="24" value="8" title="Program-loop or crawl hours">
+                                <input id="training-cpu" class="control-input" type="number" min="15" max="60" value="30" title="CPU target">
+                            </div>
+                            <div class="training-toolbar">
+                                <button class="panel-btn primary" id="run-training-prompt-btn">Run Prompt Test</button>
+                                <button class="panel-btn primary" id="start-aider-terminal-btn">Start Aider Terminal</button>
+                                <button class="panel-btn primary" id="start-genetic-coder-btn">Start Genetic Coder</button>
+                                <button class="panel-btn" id="stop-aider-terminal-btn">Stop Aider</button>
+                                <button class="panel-btn" id="refresh-aider-terminal-btn">Refresh Aider</button>
+                                <button class="panel-btn" id="refresh-training-btn">Refresh Metrics</button>
+                            </div>
+                            <div id="training-status" class="training-status">Ready. Aider is the coding lane; Web UI records terminal evidence.</div>
+                        </div>
+                        <div>
+                            <div class="metric-grid">
+                                <div class="metric">
+                                    <div class="metric-label">Twin Events</div>
+                                    <div class="metric-value" id="training-twin-events">0</div>
+                                    <div class="metric-sub" id="training-twin-status">System twin</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Last Response</div>
+                                    <div class="metric-value" id="training-last-ms">0ms</div>
+                                    <div class="metric-sub">Prompt latency</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Avg Response</div>
+                                    <div class="metric-value" id="training-avg-ms">0ms</div>
+                                    <div class="metric-sub">Recent probes</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Working LOC</div>
+                                    <div class="metric-value" id="training-code-lines">0</div>
+                                    <div class="metric-sub" id="training-loc-rate">0/min</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Research Hits</div>
+                                    <div class="metric-value" id="training-research-hits">0</div>
+                                    <div class="metric-sub">Over time</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Pass Rate</div>
+                                    <div class="metric-value" id="training-pass-rate">0%</div>
+                                    <div class="metric-sub">Observed tests</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Run Chance</div>
+                                    <div class="metric-value" id="training-run-chance">0%</div>
+                                    <div class="metric-sub">Before execution</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="training-chart" class="training-chart"></div>
+                    <div class="training-status" id="aider-terminal-job">Aider terminal lane idle.</div>
+                    <div id="aider-terminal-output" class="terminal-output"><span class="muted">Terminal output will appear here after an Aider run starts.</span></div>
+                    <div class="training-status" id="lava-event-status">Lava event plane idle. Intel Lava/Loihi disabled until explicitly enabled.</div>
+                    <div id="lava-event-output" class="terminal-output"><span class="muted">KQML/SOAP/GC events will appear here after a genetic coder run starts.</span></div>
+                    <div id="training-timescale-map" class="timescale-map"></div>
+                    <div class="timescale-legend">
+                        <span style="--dot:#7bd389;">positive/pass</span>
+                        <span style="--dot:#ff8f8f;">negative/fail</span>
+                        <span style="--dot:#a8c7fa;">observed</span>
+                        <span style="--dot:#f8c67a;">research/tool-heavy</span>
+                    </div>
+                    <div id="training-run-list" class="list" style="margin-top: 10px;">
+                        <div class="empty-state">No testing or training runs recorded yet.</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card span-4">
+                    <div class="sidebar-heading">Recent Reasoning Notes</div>
+                    <div id="reasoning-note-list" class="list">
+                        <div class="empty-state">No project reasoning notes yet.</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card span-4">
+                    <div class="sidebar-heading">Recent Vector Memories</div>
+                    <div id="vector-memory-list" class="list">
+                        <div class="empty-state">No project vector memories yet.</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card span-4">
+                    <div class="sidebar-heading">SOP: Tools</div>
+                    <div id="sop-tools" class="list">
+                        <div class="empty-state">Loading tool SOPs...</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card span-4">
+                    <div class="sidebar-heading">SOP: Coding</div>
+                    <div id="sop-coding" class="list">
+                        <div class="empty-state">Loading coding SOPs...</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card span-4">
+                    <div class="sidebar-heading">SOP: Desktop Automation</div>
+                    <div id="sop-desktop" class="list">
+                        <div class="empty-state">Loading desktop SOPs...</div>
+                    </div>
                 </div>
             </div>
         </div>
-        
+
+        <div id="chat-container">
+            <div class="message bot">
+                <div class="avatar bot-avatar">A</div>
+                <div>
+                    <span class="thoughts">Project dashboard initialized. Conversation stays organic; explicit run/create/edit/start requests can use tools.</span>
+                    <div class="bubble">Start with a normal question, a code discussion, or an approved action.</div>
+                </div>
+            </div>
+        </div>
+
         <div id="input-area">
-            <h1>Hello World!</h1>
-            <p>This is my first HTML file.</p>
+            <div class="composer-meta">
+                <div>Active project: <strong id="composer-project-label">general</strong></div>
+                <div id="composer-runtime-label">Runtime check pending</div>
+            </div>
             <div class="input-box" style="margin-top: 15px;">
-                <input type="text" id="chat-input" placeholder="Enter a prompt here" autocomplete="off">
-                <button id="send-btn" title="Send Message">➤</button>
-                <button id="retry-btn" title="Regenerate Response" style="margin-left: 10px; font-size: 18px;">↻</button>
+                <input type="text" id="chat-input" placeholder="Talk naturally. Say run, create, edit, or start when you want action." autocomplete="off">
+                <button id="send-btn" title="Send Message">Send</button>
+                <button id="retry-btn" title="Regenerate Response">Retry</button>
+            </div>
+            <div class="prompt-row">
+                <div class="prompt-pill" onclick="applyPrompt('/research map the current project risks and next coding tasks')">Research loop</div>
+                <div class="prompt-pill" onclick="applyPrompt('Summarize the current project state and next 3 coding priorities.')">Project summary</div>
+                <div class="prompt-pill" onclick="applyPrompt('Create a desktop automation SOP for the most repetitive workflow in this project.')">Automation SOP</div>
             </div>
         </div>
     </div>
@@ -90,177 +373,1875 @@
         const chatContainer = document.getElementById('chat-container');
         const kernelMode = document.getElementById('kernel-mode');
         const statusDot = document.getElementById('status-dot');
-        const ragStatus = document.getElementById('rag-status');
-        
-        let lastPrompt = "";
+        const projectInput = document.getElementById('project-input');
+        const activeProjectPill = document.getElementById('active-project-pill');
+        const composerProjectLabel = document.getElementById('composer-project-label');
+        const composerRuntimeLabel = document.getElementById('composer-runtime-label');
+        const refreshDashboardBtn = document.getElementById('refresh-dashboard-btn');
+        const focusResearchBtn = document.getElementById('focus-research-btn');
+        const memoryStatusValue = document.getElementById('memory-status-value');
+        const memoryStatusSub = document.getElementById('memory-status-sub');
+        const vectorStatusValue = document.getElementById('vector-status-value');
+        const vectorStatusSub = document.getElementById('vector-status-sub');
+        const kernelStatusValue = document.getElementById('kernel-status-value');
+        const kernelStatusSub = document.getElementById('kernel-status-sub');
+        const signalStatusValue = document.getElementById('signal-status-value');
+        const signalStatusSub = document.getElementById('signal-status-sub');
+        const projectSnapshotTitle = document.getElementById('project-snapshot-title');
+        const projectTimescaleCount = document.getElementById('project-timescale-count');
+        const projectVectorCount = document.getElementById('project-vector-count');
+        const projectSecretCount = document.getElementById('project-secret-count');
+        const projectReasoningCount = document.getElementById('project-reasoning-count');
+        const reasoningNoteList = document.getElementById('reasoning-note-list');
+        const vectorMemoryList = document.getElementById('vector-memory-list');
+        const sopTools = document.getElementById('sop-tools');
+        const sopCoding = document.getElementById('sop-coding');
+        const sopDesktop = document.getElementById('sop-desktop');
 
-        async function pollStatus() {
+        const trainingPrompt = document.getElementById('training-prompt');
+        const trainingModifier = document.getElementById('training-modifier');
+        const trainingIterations = document.getElementById('training-iterations');
+        const trainingHours = document.getElementById('training-hours');
+        const trainingCpu = document.getElementById('training-cpu');
+        const runTrainingPromptBtn = document.getElementById('run-training-prompt-btn');
+        const runAbTrainingBtn = document.getElementById('run-ab-training-btn');
+        const startProgramTrainingBtn = document.getElementById('start-program-training-btn');
+        const longCrawlBtn = document.getElementById('long-crawl-btn');
+        const researchProbeBtn = document.getElementById('research-probe-btn');
+        const startAiderTerminalBtn = document.getElementById('start-aider-terminal-btn');
+        const startGeneticCoderBtn = document.getElementById('start-genetic-coder-btn');
+        const stopAiderTerminalBtn = document.getElementById('stop-aider-terminal-btn');
+        const refreshAiderTerminalBtn = document.getElementById('refresh-aider-terminal-btn');
+        const aiderTerminalJob = document.getElementById('aider-terminal-job');
+        const aiderTerminalOutput = document.getElementById('aider-terminal-output');
+        const lavaEventStatus = document.getElementById('lava-event-status');
+        const lavaEventOutput = document.getElementById('lava-event-output');
+        const refreshTrainingBtn = document.getElementById('refresh-training-btn');
+        const trainingStatus = document.getElementById('training-status');
+        const trainingTwinEvents = document.getElementById('training-twin-events');
+        const trainingTwinStatus = document.getElementById('training-twin-status');
+        const trainingLastMs = document.getElementById('training-last-ms');
+        const trainingAvgMs = document.getElementById('training-avg-ms');
+        const trainingCodeLines = document.getElementById('training-code-lines');
+        const trainingLocRate = document.getElementById('training-loc-rate');
+        const trainingResearchHits = document.getElementById('training-research-hits');
+        const trainingPassRate = document.getElementById('training-pass-rate');
+        const trainingRunChance = document.getElementById('training-run-chance');
+        const trainingChart = document.getElementById('training-chart');
+        const trainingTimescaleMap = document.getElementById('training-timescale-map');
+        const trainingRunList = document.getElementById('training-run-list');
+
+        let lastPrompt = '';
+        let dashboardBusy = false;
+        let chatBusy = false;
+        let activeChatController = null;
+        let chatHistory = [];
+        let trackedJobs = [];
+        const UI_STATE_KEY = 'aegis.project.dashboard.state.v3';
+        const MAX_STORED_MESSAGES = 80;
+
+        const TRAINING_RUNS_KEY = 'aegis.training.runs.v1';
+        const MAX_TRAINING_RUNS = 80;
+        let trainingRuns = [];
+        let lastAssistantFeedback = null;
+        let activeAiderJobId = null;
+        let aiderPollTimer = null;
+        let activeGeneticCoderJobId = null;
+        let geneticCoderPollTimer = null;
+
+        function readStoredState() {
             try {
-                const healthRes = await fetch('/api/health');
-                const health = await healthRes.json();
-                ragStatus.innerText = `RAG: ${health.rag_status}`;
-                ragStatus.style.color = health.rag_status === "ONLINE" ? "#a8c7fa" : "#8B0000";
-
-                const sigRes = await fetch('/api/signal/status');
-                const state = await sigRes.json();
-                if (state.active) {
-                    statusDot.style.background = "#FF0000";
-                    statusDot.style.boxShadow = "0 0 15px #FF0000";
-                } else {
-                    statusDot.style.background = "#8B0000";
-                    statusDot.style.boxShadow = "none";
-                }
-            } catch (e) {
-                ragStatus.innerText = "OFFLINE";
-                ragStatus.style.color = "#8B0000";
+                return JSON.parse(localStorage.getItem(UI_STATE_KEY) || '{}') || {};
+            } catch (error) {
+                console.warn('Stored UI state could not be read', error);
+                return {};
             }
         }
-        setInterval(pollStatus, 5000);
 
-        function addMessage(text, isUser, thoughts = null, messageId = null) {
+        function persistUiState() {
+            try {
+                const state = {
+                    project: projectInput.value || 'general',
+                    kernelMode: kernelMode.value || 'auto',
+                    inputDraft: input.value || '',
+                    lastPrompt,
+                    chatHistory: chatHistory.slice(-MAX_STORED_MESSAGES),
+                    trackedJobs,
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem(UI_STATE_KEY, JSON.stringify(state));
+            } catch (error) {
+                console.warn('UI state could not be saved', error);
+            }
+        }
+
+        function clearUiState() {
+            chatHistory = [];
+            trackedJobs = [];
+            try {
+                localStorage.removeItem(UI_STATE_KEY);
+            } catch (error) {
+                console.warn('UI state could not be cleared', error);
+            }
+        }
+
+        function restoreUiState() {
+            const state = readStoredState();
+            if (state.project) {
+                projectInput.value = state.project;
+            }
+            if (state.kernelMode) {
+                kernelMode.value = state.kernelMode;
+            }
+            if (state.inputDraft) {
+                input.value = state.inputDraft;
+            }
+            if (state.lastPrompt) {
+                lastPrompt = state.lastPrompt;
+            }
+            if (Array.isArray(state.chatHistory)) {
+                chatHistory = state.chatHistory.slice(-MAX_STORED_MESSAGES);
+            }
+            if (Array.isArray(state.trackedJobs)) {
+                trackedJobs = state.trackedJobs.filter((job) => job && job.jobId);
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function highlightCodeSyntax(code) {
+            let html = escapeHtml(code);
+            html = html.replace(/(#[^\n]*)/g, '<span class="tok-comment">$1</span>');
+            html = html.replace(/(&quot;[^&]*?&quot;|&#39;[^&]*?&#39;)/g, '<span class="tok-string">$1</span>');
+            html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-number">$1</span>');
+            html = html.replace(/\b(def|class|return|if|elif|else|for|while|try|except|import|from|with|as|async|await|True|False|None|let|const|function|var|new|throw)\b/g, '<span class="tok-keyword">$1</span>');
+            html = html.replace(/([=+\-*\/<>!]+|\b(?:and|or|not|in|is)\b)/g, '<span class="tok-operator">$1</span>');
+            return html;
+        }
+
+        function renderRichText(text) {
+            const source = String(text || '');
+
+            let formattedSource = source.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/gi, (match, content) => {
+                return `<details class="qwen-thought"><summary>Model Reasoning</summary><div class="qwen-inner">${content.trim().replace(/\n/g, '<br>')}</div></details>`;
+            });
+            formattedSource = formattedSource.replace(/<think>([\s\S]*?)<\/think>/gi, (match, content) => {
+                return `<details class="qwen-thought"><summary>Model Reasoning</summary><div class="qwen-inner">${content.trim().replace(/\n/g, '<br>')}</div></details>`;
+            });
+
+            const fencedBlocks = [];
+            let working = formattedSource.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (_match, lang, code) => {
+                const token = `@@CODEBLOCK_${fencedBlocks.length}@@`;
+                fencedBlocks.push({
+                    token,
+                    html: `<pre><code class="lang-${escapeHtml(lang || 'plain')}">${highlightCodeSyntax(code.trim())}</code></pre>`
+                });
+                return token;
+            });
+
+            working = escapeHtml(working);
+            working = working.replace(/==(.+?)==/g, '<mark>$1</mark>');
+            working = working.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+            working = working.replace(/\n/g, '<br>');
+
+            for (const block of fencedBlocks) {
+                working = working.replace(block.token, block.html);
+            }
+            return working;
+        }
+
+        function getActiveProject() {
+            const normalized = (projectInput.value || 'general')
+                .trim()
+                .replace(/[^A-Za-z0-9_.-]+/g, '-')
+                .replace(/^-+|-+$/g, '') || 'general';
+            if (projectInput.value !== normalized) {
+                projectInput.value = normalized;
+            }
+            return normalized;
+        }
+
+        function updateProjectLabels() {
+            const project = getActiveProject();
+            activeProjectPill.textContent = project;
+            composerProjectLabel.textContent = project;
+            projectSnapshotTitle.textContent = project;
+            persistUiState();
+            return project;
+        }
+
+        function applyPrompt(text) {
+            input.value = text;
+            persistUiState();
+            input.focus();
+        }
+
+        function renderActions() {
+            return `
+                <div class="action-btns">
+                    <button class="action-btn" onclick="sendFeedback(0, 1, this)">Like</button>
+                    <button class="action-btn" onclick="sendFeedback(0, -1, this)">Dislike</button>
+                    <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">Retry</button>
+                </div>
+            `;
+        }
+
+        function buildMiniList(items, emptyText, renderer) {
+            if (!items || !items.length) {
+                return `<div class="empty-state">${escapeHtml(emptyText)}</div>`;
+            }
+            return items.map((item) => renderer(item)).join('');
+        }
+
+        function renderSopList(target, items) {
+            target.innerHTML = buildMiniList(items, 'No SOP items loaded yet.', (item) => {
+                return `<div class="list-item">${escapeHtml(item)}</div>`;
+            });
+        }
+
+        function renderBotContent(container, thoughts, text, errorText) {
+            let html = '';
+            if (thoughts) {
+                html += `<span class="thoughts">${escapeHtml(thoughts)}</span>`;
+            }
+
+            if (!text || text === 'Waiting for reply...') {
+                html += `<div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+            } else {
+                html += `<div class="bubble">${renderRichText(text)}</div>`;
+            }
+
+            if (errorText) {
+                html += `<div class="bubble" style="color: #ffb0b0;">${escapeHtml(errorText)}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderWelcomeMessage() {
+            chatContainer.innerHTML = `
+                <div class="message bot">
+                    <div class="avatar bot-avatar">A</div>
+                    <div>
+                        <span class="thoughts">Project dashboard initialized. Conversation stays organic; explicit run/create/edit/start requests can use tools.</span>
+                        <div class="bubble">Start with a normal question, a code discussion, or an approved action.</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function rememberMessage(text, isUser, thoughts = null, meta = {}) {
+            const cleanText = String(text || '').trim();
+            if (!cleanText) {
+                return;
+            }
+            chatHistory.push({
+                role: isUser ? 'user' : 'assistant',
+                text: cleanText,
+                thoughts: thoughts || '',
+                jobId: meta.jobId || null,
+                jobType: meta.jobType || null,
+                project: meta.project || getActiveProject(),
+                timestamp: meta.timestamp || new Date().toISOString()
+            });
+            chatHistory = chatHistory.slice(-MAX_STORED_MESSAGES);
+            persistUiState();
+        }
+
+        function renderStoredChatHistory() {
+            if (!chatHistory.length) {
+                renderWelcomeMessage();
+                return;
+            }
+            chatContainer.innerHTML = '';
+            chatHistory.forEach((entry) => {
+                addMessage(entry.text, entry.role === 'user', entry.thoughts || null, {
+                    persist: false,
+                    jobId: entry.jobId,
+                    jobType: entry.jobType,
+                    project: entry.project,
+                    timestamp: entry.timestamp
+                });
+            });
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addMessage(text, isUser, thoughts = null, options = {}) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            let avatarHtml = isUser ? '<div class="avatar user-avatar">VPR</div>' : '<div class="avatar bot-avatar">✨</div>';
-            
+            const avatarHtml = isUser
+                ? '<div class="avatar user-avatar">VPR</div>'
+                : '<div class="avatar bot-avatar">A</div>';
+
             let content = '';
-            if (thoughts) content += `<span class="thoughts">${thoughts}</span>`;
-            content += `<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
-            
-            if (!isUser && text !== "...") {
-                content += `
-                    <div class="action-btns">
-                        <button class="action-btn" onclick="sendFeedback(${messageId}, 1, this)">👍</button>
-                        <button class="action-btn" onclick="sendFeedback(${messageId}, -1, this)">👎</button>
-                        <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">↻</button>
-                    </div>
-                `;
+            if (thoughts) {
+                content += `<span class="thoughts">${escapeHtml(thoughts)}</span>`;
             }
-            
+            content += `<div class="bubble">${isUser ? escapeHtml(text).replace(/\n/g, '<br>') : renderRichText(text)}</div>`;
+
+            if (!isUser && text !== '...') {
+                content += renderActions();
+            }
+
             msgDiv.innerHTML = `${avatarHtml}<div>${content}</div>`;
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            if (options.persist !== false) {
+                rememberMessage(text, isUser, thoughts, options);
+            }
             return msgDiv;
         }
 
         async function sendFeedback(id, score, btn) {
             try {
+                const feedback = lastAssistantFeedback || {};
                 await fetch('/api/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message_id: id || 0, score: score })
+                    body: JSON.stringify({
+                        message_id: id || 0,
+                        score: score,
+                        run_id: feedback.runId || null,
+                        project: feedback.project || getActiveProject(),
+                        prompt: feedback.prompt || '',
+                        response: feedback.response || '',
+                        route: feedback.route || '',
+                        response_ms: feedback.responseMs || 0,
+                        logic_points: feedback.logicPoints || []
+                    })
                 });
+                if (feedback.runId) {
+                    upsertTrainingRun({
+                        id: feedback.runId,
+                        type: feedback.type || 'chat-response',
+                        status: score > 0 ? 'liked' : 'disliked',
+                        project: feedback.project || getActiveProject(),
+                        prompt: feedback.prompt || '',
+                        responseMs: feedback.responseMs || 0,
+                        codeLines: countCodeLinesFromText(feedback.response || ''),
+                        researchHits: 0,
+                        predictedRunProbability: 0,
+                        testsPass: undefined,
+                        logicPoints: feedback.logicPoints || [],
+                        details: (feedback.response || '').slice(0, 260)
+                    });
+                }
                 const btns = btn.parentElement.querySelectorAll('.action-btn');
-                btns.forEach(b => b.classList.remove('active'));
+                btns.forEach((entry) => entry.classList.remove('active'));
                 btn.classList.add('active');
-            } catch (e) {}
+            } catch (error) {
+                console.error('Feedback failed', error);
+            }
         }
 
         async function clearFullConversation() {
-            if (!confirm("Are you sure you want to delete the entire manifold session?")) return;
+            if (!confirm('Are you sure you want to delete the entire manifold session?')) {
+                return;
+            }
             try {
-                await fetch(`/api/conversation/local`, { method: 'DELETE' });
+                await fetch('/api/conversation/local', { method: 'DELETE' });
+                clearUiState();
                 location.reload();
-            } catch (e) {}
+            } catch (error) {
+                console.error('Conversation clear failed', error);
+            }
+        }
+
+        async function pollStatus() {
+            try {
+                const [healthRes, signalRes] = await Promise.all([
+                    fetch('/api/health'),
+                    fetch('/api/signal/status')
+                ]);
+                const health = await healthRes.json();
+                const signal = await signalRes.json();
+
+                memoryStatusValue.textContent = health.memory_status || 'UNKNOWN';
+                memoryStatusSub.textContent = 'Readable project memory';
+
+                const vectorStatus = health.vector_status || {};
+                vectorStatusValue.textContent = vectorStatus.backend || 'UNKNOWN';
+                vectorStatusSub.textContent = vectorStatus.semantic_available
+                    ? `${vectorStatus.semantic_backend || 'semantic'} online`
+                    : 'Lexical fallback active';
+
+                kernelStatusValue.textContent = health.kernel || 'UNKNOWN';
+                kernelStatusSub.textContent = `Mode: ${health.mode || kernelMode.value} -> ${health.resolved_mode || health.mode || kernelMode.value}`;
+                if (health.mode && kernelMode.value !== health.mode) {
+                    kernelMode.value = health.mode;
+                }
+                composerRuntimeLabel.textContent = `Kernel ${health.kernel || 'UNKNOWN'} / Route ${health.resolved_mode || health.mode || kernelMode.value}`;
+                if (health.system_twin) {
+                    renderTwinTrainingStatus(health.system_twin);
+                }
+
+                signalStatusValue.textContent = signal.active ? 'ACTIVE' : 'IDLE';
+                signalStatusSub.textContent = signal.last_seen
+                    ? `Last seen ${new Date(signal.last_seen).toLocaleTimeString()}`
+                    : 'Desktop status';
+
+                if (signal.active) {
+                    statusDot.style.background = '#ff4d4d';
+                    statusDot.style.boxShadow = '0 0 15px #ff4d4d';
+                } else {
+                    statusDot.style.background = '#8b0000';
+                    statusDot.style.boxShadow = 'none';
+                }
+            } catch (error) {
+                memoryStatusValue.textContent = 'OFFLINE';
+                memoryStatusSub.textContent = 'Health probe failed';
+                vectorStatusValue.textContent = 'OFFLINE';
+                vectorStatusSub.textContent = 'Vector probe failed';
+                kernelStatusValue.textContent = 'OFFLINE';
+                kernelStatusSub.textContent = 'Kernel unavailable';
+                signalStatusValue.textContent = 'OFFLINE';
+                signalStatusSub.textContent = 'Signal unavailable';
+                composerRuntimeLabel.textContent = 'Runtime check failed';
+                statusDot.style.background = '#8b0000';
+                statusDot.style.boxShadow = 'none';
+            }
+        }
+
+
+        function readTrainingRuns() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(TRAINING_RUNS_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.slice(-MAX_TRAINING_RUNS) : [];
+            } catch (error) {
+                console.warn('Training metrics could not be read', error);
+                return [];
+            }
+        }
+
+        function persistTrainingRuns() {
+            try {
+                localStorage.setItem(TRAINING_RUNS_KEY, JSON.stringify(trainingRuns.slice(-MAX_TRAINING_RUNS)));
+            } catch (error) {
+                console.warn('Training metrics could not be saved', error);
+            }
+        }
+
+        function setTrainingStatus(text, tone = '') {
+            if (!trainingStatus) {
+                return;
+            }
+            trainingStatus.textContent = text;
+            trainingStatus.className = `training-status ${tone}`.trim();
+        }
+
+        function renderAiderTerminal(job) {
+            if (!aiderTerminalOutput || !aiderTerminalJob) {
+                return;
+            }
+            if (!job) {
+                aiderTerminalJob.textContent = 'Aider terminal lane idle.';
+                aiderTerminalOutput.innerHTML = '<span class="muted">Terminal output will appear here after an Aider run starts.</span>';
+                return;
+            }
+            aiderTerminalJob.textContent = `${job.status || 'unknown'} | ${job.job_id || 'no job'} | ${job.run_dir || ''}`;
+            const tail = Array.isArray(job.output_tail) ? job.output_tail.join('\n') : '';
+            const header = job.disclaimer || 'Aider terminal lane: terminal evidence recorder.';
+            aiderTerminalOutput.textContent = `${header}\n\n${tail || job.error || 'Waiting for terminal output...'}`;
+            aiderTerminalOutput.scrollTop = aiderTerminalOutput.scrollHeight;
+        }
+
+        async function refreshAiderTerminal(showStatus = true) {
+            if (!activeAiderJobId) {
+                if (showStatus) {
+                    setTrainingStatus('No active Aider job to refresh.', 'warn');
+                }
+                return null;
+            }
+            try {
+                const response = await fetch(`/api/aider/job/${encodeURIComponent(activeAiderJobId)}`);
+                if (!response.ok) {
+                    throw new Error(`Aider job lookup failed: ${response.status}`);
+                }
+                const job = await response.json();
+                renderAiderTerminal(job);
+                const finished = ['completed', 'failed', 'stopping'].includes(job.status);
+                upsertTrainingRun({
+                    id: job.job_id,
+                    type: 'aider-terminal',
+                    status: job.status,
+                    project: job.project || getActiveProject(),
+                    prompt: job.prompt || '',
+                    response: (job.output_tail || []).join('\n').slice(-4000),
+                    responseMs: job.finished_at && job.started_at ? Math.max(0, new Date(job.finished_at) - new Date(job.started_at)) : 0,
+                    codeLines: countCodeLinesFromText((job.output_tail || []).join('\n')),
+                    researchHits: 0,
+                    testsPass: job.returncode === 0 ? true : (job.returncode === null || job.returncode === undefined ? undefined : false),
+                    logicPoints: ['aider_terminal', 'terminal_evidence']
+                });
+                if (finished && aiderPollTimer) {
+                    clearInterval(aiderPollTimer);
+                    aiderPollTimer = null;
+                }
+                return job;
+            } catch (error) {
+                setTrainingStatus(error.message || 'Aider terminal refresh failed.', 'warn');
+                return null;
+            }
+        }
+
+        async function refreshLavaEvents(showStatus = false) {
+            if (!lavaEventOutput || !lavaEventStatus) {
+                return null;
+            }
+            try {
+                const response = await fetch(`/api/lava/events?project=${encodeURIComponent(getActiveProject())}&limit=12`);
+                if (!response.ok) {
+                    throw new Error(`Lava event lookup failed: ${response.status}`);
+                }
+                const data = await response.json();
+                const status = data.status || {};
+                const state = status.state || {};
+                lavaEventStatus.textContent = `Lava event plane: ${state.current_phase || 'idle'} | ${state.event_count || 0} event(s) | backend ${status.backend || 'cpu-simulation'} | Intel Lava ${status.intel_lava_enabled ? 'enabled' : 'off'}`;
+                const events = Array.isArray(data.events) ? data.events : [];
+                lavaEventOutput.textContent = events.length ? events.map((event) => {
+                    const content = event.content || {};
+                    const candidate = content.candidate_id || content.candidate || '';
+                    const fitness = Number.isFinite(Number(content.fitness)) ? ` fitness=${Number(content.fitness).toFixed(3)}` : '';
+                    const tests = typeof content.tests_pass === 'boolean' ? ` tests=${content.tests_pass ? 'pass' : 'fail'}` : '';
+                    const line = `${event.created_at || ''} ${event.event_type || 'event'} ${event.status || ''}${candidate ? ` ${candidate}` : ''}${fitness}${tests}`;
+                    return `${line}\n${event.kqml_wire || ''}`.trim();
+                }).join('\n\n') : 'No Lava/KQML events recorded yet.';
+                if (showStatus) {
+                    setTrainingStatus('Lava event plane refreshed.', 'ok');
+                }
+                return data;
+            } catch (error) {
+                lavaEventStatus.textContent = error.message || 'Lava event refresh failed.';
+                if (showStatus) {
+                    setTrainingStatus(error.message || 'Lava event refresh failed.', 'warn');
+                }
+                return null;
+            }
+        }
+
+        async function startAiderTerminal() {
+            const prompt = buildTrainingModifierPrompt(trainingPrompt?.value || input.value || 'Summarize the current project and show terminal-visible evidence.');
+            if (!prompt.trim()) {
+                setTrainingStatus('Add a prompt before starting Aider.', 'warn');
+                return;
+            }
+            setTrainingStatus('Starting Aider terminal lane...', '');
+            try {
+                const response = await fetch('/api/aider/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt,
+                        project: getActiveProject(),
+                        dry_run: true,
+                        read_only: true
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.ok === false) {
+                    renderAiderTerminal({
+                        status: 'unavailable',
+                        job_id: 'not-started',
+                        run_dir: data.install_ready_wheels || '',
+                        disclaimer: 'Aider terminal lane could not start.',
+                        output_tail: [data.error || `Request failed with status ${response.status}`]
+                    });
+                    setTrainingStatus(data.error || 'Aider terminal lane unavailable.', 'warn');
+                    return;
+                }
+                activeAiderJobId = data.job_id;
+                renderAiderTerminal(data);
+                upsertTrainingRun({
+                    id: data.job_id,
+                    type: 'aider-terminal',
+                    status: 'running',
+                    project: data.project || getActiveProject(),
+                    prompt,
+                    responseMs: 0,
+                    codeLines: 0,
+                    researchHits: 0,
+                    logicPoints: ['aider_terminal', 'terminal_evidence']
+                });
+                setTrainingStatus('Aider terminal lane started. Recording terminal evidence.', 'ok');
+                if (aiderPollTimer) {
+                    clearInterval(aiderPollTimer);
+                }
+                aiderPollTimer = setInterval(() => refreshAiderTerminal(false), 2500);
+            } catch (error) {
+                setTrainingStatus(error.message || 'Aider terminal start failed.', 'warn');
+            }
+        }
+
+        async function stopAiderTerminal() {
+            if (!activeAiderJobId) {
+                setTrainingStatus('No active Aider job to stop.', 'warn');
+                return;
+            }
+            try {
+                await fetch(`/api/aider/job/${encodeURIComponent(activeAiderJobId)}/stop`, { method: 'POST' });
+                setTrainingStatus('Stop signal sent to Aider terminal lane.', 'warn');
+                await refreshAiderTerminal(false);
+            } catch (error) {
+                setTrainingStatus(error.message || 'Aider stop failed.', 'warn');
+            }
+        }
+
+        async function refreshGeneticCoder(showStatus = true) {
+            if (!activeGeneticCoderJobId) {
+                if (showStatus) setTrainingStatus('No active genetic coder job to refresh.', 'warn');
+                return null;
+            }
+            try {
+                const response = await fetch(`/api/genetic-coder/job/${encodeURIComponent(activeGeneticCoderJobId)}`);
+                if (!response.ok) throw new Error(`Genetic coder lookup failed: ${response.status}`);
+                const job = await response.json();
+                const best = job.best || {};
+                upsertTrainingRun({
+                    id: job.job_id,
+                    type: 'genetic-coder',
+                    status: job.status,
+                    project: job.project || getActiveProject(),
+                    prompt: job.objective || '',
+                    response: JSON.stringify({ best, workspace: job.workspace, soap: job.soap }, null, 2).slice(0, 4000),
+                    responseMs: 0,
+                    codeLines: best.files ? countCodeLinesFromText(Object.values(best.files).join('\n')) : 0,
+                    researchHits: Array.isArray(job.snippets) ? job.snippets.length : 0,
+                    testsPass: typeof best.tests_pass === 'boolean' ? best.tests_pass : undefined,
+                    predictedRunProbability: best.fitness || 0,
+                    logicPoints: ['genetic_coder', 'soap_heuristics', 'kqml_trace', 'set_theory']
+                });
+                setTrainingStatus(`Genetic coder ${job.status}: best fitness ${Math.round((best.fitness || 0) * 100)}%, workspace ${job.workspace}`, job.status === 'completed' ? 'ok' : '');
+                await refreshLavaEvents(false);
+                if (['completed', 'failed', 'stopped'].includes(job.status) && geneticCoderPollTimer) {
+                    clearInterval(geneticCoderPollTimer);
+                    geneticCoderPollTimer = null;
+                }
+                return job;
+            } catch (error) {
+                setTrainingStatus(error.message || 'Genetic coder refresh failed.', 'warn');
+                return null;
+            }
+        }
+
+        async function startGeneticCoder() {
+            const objective = trainingPrompt?.value || input.value || 'Build a tiny Python program and prove it runs.';
+            if (!objective.trim()) {
+                setTrainingStatus('Add a prompt before starting the genetic coder.', 'warn');
+                return;
+            }
+            setTrainingStatus('Starting heuristic genetic coder...', '');
+            try {
+                const response = await fetch('/api/genetic-coder/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        objective,
+                        project: getActiveProject(),
+                        language: 'python',
+                        outline: 'Aider owns outline/front/back page. Genetic coder fills middle with tested candidates.',
+                        max_generations: Math.max(1, Math.min(Number(trainingIterations?.value || 3), 9)),
+                        population: 4,
+                        timebox_minutes: Math.max(1, Math.min(Number(trainingHours?.value || 1) * 60, 24 * 60)),
+                        snippets: []
+                    })
+                });
+                const job = await response.json();
+                if (!response.ok) throw new Error(job.detail || `Genetic coder failed: ${response.status}`);
+                activeGeneticCoderJobId = job.job_id;
+                upsertTrainingRun({
+                    id: job.job_id,
+                    type: 'genetic-coder',
+                    status: job.status,
+                    project: job.project || getActiveProject(),
+                    prompt: objective,
+                    responseMs: 0,
+                    codeLines: 0,
+                    researchHits: 0,
+                    predictedRunProbability: 0,
+                    logicPoints: ['genetic_coder', 'soap_heuristics', 'kqml_trace', 'set_theory']
+                });
+                setTrainingStatus(`Genetic coder started: ${job.job_id}`, 'ok');
+                if (geneticCoderPollTimer) clearInterval(geneticCoderPollTimer);
+                geneticCoderPollTimer = setInterval(() => refreshGeneticCoder(false), 2500);
+                await refreshGeneticCoder(false);
+            } catch (error) {
+                setTrainingStatus(error.message || 'Genetic coder start failed.', 'warn');
+            }
+        }
+
+        function buildTrainingModifierPrompt(basePrompt, iterationLabel = '') {
+            const modifiers = {
+                aider_terminal: 'Modifier: use the Aider terminal lane. Treat terminal output as the evidence source and record stdout, stderr, diffs, tests, and failures.',
+                programs_make_programs: 'Modifier: create a program whose output is another runnable program. Include a self-test harness and verify the generated program runs.',
+                ab_test: 'Modifier: run this as an A/B experiment. Compare two lenses, measure latency, code lines, research hits, pass/fail, and choose the winner by evidence.',
+                long_crawl: 'Modifier: run as a long webcrawl. Create a large research document, compressed algorithms, and deployment notes over the full requested timebox.',
+                deployment_confidence: 'Modifier: before every execution, estimate statistical run likelihood, list required checks, and only execute after syntax, test, smoke, and deployment gates are visible.',
+                more_tests: 'Modifier: add more verification, explicit pass/fail checks, and fix loops before declaring success.',
+                more_research: 'Modifier: perform targeted research first, compress useful facts, then build and test.',
+                more_code: 'Modifier: produce more working source code and fewer explanations. Prefer runnable files over prose.',
+                d8_flat: 'Modifier: if Android or Java is involved, use Flat Java, minimal dependencies, and D8-friendly compression.'
+            };
+            const selected = modifiers[trainingModifier?.value || 'aider_terminal'] || modifiers.aider_terminal;
+            return `${basePrompt.trim()}\n\n${selected}\n${iterationLabel}`.trim();
+        }
+
+        function countCodeLinesFromText(text) {
+            const source = text || '';
+            const fenceMatches = [...source.matchAll(/```[a-zA-Z0-9_-]*\n([\s\S]*?)```/g)];
+            if (fenceMatches.length) {
+                return fenceMatches.reduce((total, match) => {
+                    return total + match[1].split('\n').filter((line) => line.trim()).length;
+                }, 0);
+            }
+            return source.split('\n').filter((line) => {
+                const trimmed = line.trim();
+                return /^(def |class |function |const |let |var |import |from |if |for |while |return |public |private |static |#include|using |\$|<[^>]+>|[A-Za-z0-9_]+\s*=)/.test(trimmed);
+            }).length;
+        }
+
+        function upsertTrainingRun(run) {
+            const existing = trainingRuns.find((item) => item.id === run.id);
+            if (existing) {
+                Object.assign(existing, run, { updatedAt: new Date().toISOString() });
+            } else {
+                trainingRuns.push({ ...run, createdAt: run.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+            }
+            trainingRuns = trainingRuns.slice(-MAX_TRAINING_RUNS);
+            persistTrainingRuns();
+            renderTrainingDashboard();
+        }
+
+        function summarizeTrainingRuns() {
+            const recent = trainingRuns.slice(-24);
+            const responseRuns = recent.filter((run) => Number.isFinite(run.responseMs));
+            const last = responseRuns[responseRuns.length - 1];
+            const avgMs = responseRuns.length
+                ? Math.round(responseRuns.reduce((sum, run) => sum + (run.responseMs || 0), 0) / responseRuns.length)
+                : 0;
+            const codeLines = recent.reduce((sum, run) => sum + (Number(run.codeLines) || 0), 0);
+            const locRate = recent.reduce((sum, run) => sum + (Number(run.locPerMinute) || 0), 0);
+            const researchHits = recent.reduce((sum, run) => sum + (Number(run.researchHits) || 0), 0);
+            const testRuns = recent.filter((run) => typeof run.testsPass === 'boolean');
+            const passRate = testRuns.length
+                ? Math.round((testRuns.filter((run) => run.testsPass).length / testRuns.length) * 100)
+                : 0;
+            const likelihoodRuns = recent.filter((run) => Number.isFinite(run.predictedRunProbability));
+            const runChance = likelihoodRuns.length
+                ? Math.round((likelihoodRuns[likelihoodRuns.length - 1].predictedRunProbability || 0) * 100)
+                : 0;
+            return { avgMs, lastMs: last ? last.responseMs || 0 : 0, codeLines, locRate, researchHits, passRate, runChance };
+        }
+
+        function drawTrainingChart() {
+            if (!trainingChart) {
+                return;
+            }
+            const points = trainingRuns.slice(-16);
+            if (!points.length) {
+                trainingChart.innerHTML = '<div class="empty-state" style="padding: 16px;">Graph appears after the first prompt, program, or research probe.</div>';
+                return;
+            }
+            const width = 520;
+            const height = 112;
+            const pad = 12;
+            const maxMs = Math.max(...points.map((run) => run.responseMs || 0), 1);
+            const maxLoc = Math.max(...points.map((run) => run.codeLines || 0), 1);
+            const step = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0;
+            const latencyPoints = points.map((run, index) => {
+                const x = pad + index * step;
+                const y = height - pad - ((run.responseMs || 0) / maxMs) * (height - pad * 2);
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+            }).join(' ');
+            const bars = points.map((run, index) => {
+                const x = pad + index * step - 5;
+                const barHeight = ((run.codeLines || 0) / maxLoc) * (height - pad * 2);
+                const y = height - pad - barHeight;
+                const color = run.testsPass === true ? '#7bd389' : (run.type === 'research-probe' ? '#f8c67a' : '#a8c7fa');
+                return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="10" height="${Math.max(2, barHeight).toFixed(1)}" rx="4" fill="${color}" opacity="0.42"></rect>`;
+            }).join('');
+            trainingChart.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="Training metrics over time">
+                    <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="rgba(255,255,255,0.10)" />
+                    ${bars}
+                    <polyline points="${latencyPoints}" fill="none" stroke="#a8c7fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    <text x="${pad}" y="18" fill="#8e918f" font-size="11">blue line: latency / bars: code lines or research</text>
+                </svg>`;
+        }
+
+        function pointScore(run) {
+            if (run.status === 'liked' || run.testsPass === true) return 1;
+            if (run.status === 'disliked' || run.testsPass === false || run.status === 'failed') return -1;
+            return 0;
+        }
+
+        function actionWeight(run) {
+            const points = run.logicPoints || [];
+            let weight = 0.18;
+            if (points.includes('discussion_intent') || String(run.type || '').includes('discussion')) weight += 0.04;
+            if (points.includes('mentions_code')) weight += 0.15;
+            if (points.includes('coding_action') || points.includes('needs_coding')) weight += 0.28;
+            if (points.includes('needs_code_execution_loop')) weight += 0.22;
+            if (points.includes('needs_automation') || points.includes('needs_browser_automation')) weight += 0.14;
+            return Math.max(0.05, Math.min(weight, 0.98));
+        }
+
+        function evidenceWeight(run) {
+            const points = run.logicPoints || [];
+            let weight = 0.12;
+            if (points.includes('needs_research')) weight += 0.18;
+            if (points.includes('needs_verification')) weight += 0.18;
+            if (points.includes('use_targeted_web_synthesis')) weight += 0.14;
+            if (points.includes('requires_deliberate_mode')) weight += 0.12;
+            weight += Math.min((Number(run.researchHits) || 0) / 20, 0.16);
+            weight += Math.min((Number(run.codeLines) || 0) / 400, 0.16);
+            return Math.max(0.05, Math.min(weight, 0.98));
+        }
+
+        function project3dPoint(run, index, count) {
+            const width = 620;
+            const height = 220;
+            const pad = 22;
+            const time = count <= 1 ? 0.5 : index / (count - 1);
+            const logic = actionWeight(run);
+            const evidence = evidenceWeight(run);
+            const outcome = pointScore(run);
+            const x3 = time * 2 - 1;
+            const y3 = logic * 2 - 1;
+            const z3 = evidence * 1.7 + outcome * 0.18;
+            const x = pad + ((x3 - y3) * 0.34 + 0.5) * (width - pad * 2);
+            const y = height - pad - ((x3 + y3) * 0.16 + z3 * 0.42 + 0.18) * (height - pad * 2);
+            return {
+                x: Math.max(pad, Math.min(width - pad, x)),
+                y: Math.max(pad, Math.min(height - pad, y)),
+                z: z3,
+                score: outcome,
+                logic,
+                evidence,
+                time
+            };
+        }
+
+        function drawTimescaleMap() {
+            if (!trainingTimescaleMap) {
+                return;
+            }
+            const points = trainingRuns.slice(-80);
+            if (!points.length) {
+                trainingTimescaleMap.innerHTML = '<div class="empty-state" style="padding: 18px;">3D timescale vector map appears after chat feedback or test runs.</div>';
+                return;
+            }
+            const width = 620;
+            const height = 220;
+            const projected = points.map((run, index) => ({ run, ...project3dPoint(run, index, points.length) }))
+                .sort((a, b) => a.z - b.z);
+            const grid = [0.2, 0.4, 0.6, 0.8].map((level) => {
+                const y = height - 22 - level * (height - 44);
+                return `<line x1="24" y1="${y.toFixed(1)}" x2="${width - 24}" y2="${(y - 30).toFixed(1)}" stroke="rgba(255,255,255,0.07)" />`;
+            }).join('');
+            const dots = projected.map((point) => {
+                const run = point.run;
+                const color = point.score > 0 ? '#7bd389' : (point.score < 0 ? '#ff8f8f' : ((run.logicPoints || []).includes('needs_research') ? '#f8c67a' : '#a8c7fa'));
+                const radius = Math.max(4, Math.min(11, 4 + point.evidence * 5 + Math.abs(point.score) * 2));
+                const label = `${run.type || 'run'} | ${Math.round(point.time * 100)}% time | action ${Math.round(point.logic * 100)} | evidence ${Math.round(point.evidence * 100)}`;
+                return `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${radius.toFixed(1)}" fill="${color}" opacity="0.72"><title>${escapeHtml(label)}</title></circle>`;
+            }).join('');
+            trainingTimescaleMap.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="3D timescale vector map">
+                    <defs>
+                        <linearGradient id="axisGlow" x1="0" x2="1"><stop offset="0" stop-color="#a8c7fa" stop-opacity="0.12"/><stop offset="1" stop-color="#7bd389" stop-opacity="0.45"/></linearGradient>
+                    </defs>
+                    <line x1="28" y1="${height - 28}" x2="${width - 32}" y2="${height - 58}" stroke="url(#axisGlow)" stroke-width="2" />
+                    <line x1="52" y1="${height - 30}" x2="115" y2="26" stroke="rgba(248,198,122,0.34)" stroke-width="2" />
+                    <line x1="48" y1="${height - 30}" x2="${width - 92}" y2="42" stroke="rgba(168,199,250,0.22)" stroke-width="2" />
+                    ${grid}
+                    ${dots}
+                    <text x="30" y="${height - 10}" fill="#8e918f" font-size="11">time</text>
+                    <text x="112" y="22" fill="#8e918f" font-size="11">evidence/tools</text>
+                    <text x="${width - 150}" y="36" fill="#8e918f" font-size="11">conversation -> action</text>
+                </svg>`;
+        }
+
+        function renderTrainingDashboard() {
+            const summary = summarizeTrainingRuns();
+            if (trainingLastMs) trainingLastMs.textContent = `${Math.round(summary.lastMs)}ms`;
+            if (trainingAvgMs) trainingAvgMs.textContent = `${summary.avgMs}ms`;
+            if (trainingCodeLines) trainingCodeLines.textContent = String(summary.codeLines);
+            if (trainingLocRate) trainingLocRate.textContent = `${summary.locRate.toFixed(1)}/min`;
+            if (trainingResearchHits) trainingResearchHits.textContent = String(summary.researchHits);
+            if (trainingPassRate) trainingPassRate.textContent = `${summary.passRate}%`;
+            if (trainingRunChance) trainingRunChance.textContent = `${summary.runChance}%`;
+            drawTrainingChart();
+            drawTimescaleMap();
+            refreshLavaEvents(false);
+            if (!trainingRunList) {
+                return;
+            }
+            const recent = trainingRuns.slice(-6).reverse();
+            trainingRunList.innerHTML = recent.length ? recent.map((run) => `
+                <div class="list-item">
+                    <strong>${escapeHtml(run.type || 'training')} ${escapeHtml(run.status || '')}</strong>
+                    ${escapeHtml(run.prompt || run.objective || 'No prompt').slice(0, 220)}
+                    <div class="metric-sub">${Math.round(run.responseMs || 0)}ms | ${run.codeLines || 0} LOC | ${run.researchHits || 0} research | P(run) ${Math.round((run.predictedRunProbability || 0) * 100)}% | ${run.testsPass === true ? 'pass' : run.testsPass === false ? 'fail' : 'observing'}${run.logicPoints && run.logicPoints.length ? ` | logic: ${escapeHtml(run.logicPoints.slice(0, 5).join(', '))}` : ''}</div>
+                </div>
+            `).join('') : '<div class="empty-state">No testing or training runs recorded yet.</div>';
+        }
+
+        async function postTrainingTwinEvent(run) {
+            try {
+                await fetch('/api/system-twin/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source: 'testing_training_gui',
+                        node: 'aegis-ui',
+                        activity: run.type || 'training',
+                        project: run.project || getActiveProject(),
+                        summary: `${run.status || 'observed'}: ${(run.prompt || run.objective || '').slice(0, 240)}`,
+                        confidence: 0.84,
+                        metrics: {
+                            response_ms: run.responseMs || 0,
+                            code_lines: run.codeLines || 0,
+                            loc_per_minute: run.locPerMinute || 0,
+                            research_hits: run.researchHits || 0,
+                            predicted_run_probability: run.predictedRunProbability || 0,
+                            tests_pass: run.testsPass
+                        }
+                    })
+                });
+            } catch (error) {
+                console.warn('Training event could not be posted to system twin', error);
+            }
+        }
+
+        function renderTwinTrainingStatus(status) {
+            if (!status || !trainingTwinEvents) {
+                return;
+            }
+            trainingTwinEvents.textContent = String(status.event_count || 0);
+            if (trainingTwinStatus) {
+                trainingTwinStatus.textContent = status.active_workflow || (status.enabled ? 'Twin online' : 'Twin offline');
+            }
+        }
+
+        async function fetchTrainingWorkspaceMetrics(workspace) {
+            if (!workspace) {
+                return {};
+            }
+            try {
+                const response = await fetch(`/api/agentic/workspace-metrics?workspace=${encodeURIComponent(workspace)}`);
+                if (!response.ok) {
+                    return {};
+                }
+                return await response.json();
+            } catch (error) {
+                return {};
+            }
+        }
+
+        async function predictTrainingExecution(payload) {
+            try {
+                const response = await fetch('/api/training/execution-likelihood', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    return { probability: 0, percent: 0, label: 'unknown', summary: 'Likelihood service unavailable.' };
+                }
+                return await response.json();
+            } catch (error) {
+                return { probability: 0, percent: 0, label: 'unknown', summary: error.message || 'Likelihood prediction failed.' };
+            }
+        }
+
+        function updateTrainingJobRun(job, data, metrics = {}) {
+            if (!job || !job.trainingRunId) {
+                return;
+            }
+            const run = trainingRuns.find((item) => item.id === job.trainingRunId);
+            if (!run) {
+                return;
+            }
+            const started = new Date(run.startedAt || run.createdAt || Date.now()).getTime();
+            const elapsed = Math.max(Date.now() - started, 0);
+            const reportText = data.report_text || data.reply || data.final_result || '';
+            const codeLines = Number(metrics.code_lines) || Number(run.codeLines) || countCodeLinesFromText(reportText);
+            const testsPass = typeof metrics.last_test_ok === 'boolean'
+                ? metrics.last_test_ok
+                : (/tests? passed|final status:\s*passed/i.test(reportText) ? true : run.testsPass);
+            upsertTrainingRun({
+                ...run,
+                status: data.status || run.status || 'running',
+                responseMs: elapsed,
+                codeLines,
+                locPerMinute: Number(metrics.code_lines_per_minute) || run.locPerMinute || 0,
+                testsPass,
+                predictedRunProbability: run.predictedRunProbability || 0,
+                details: metrics.last_test_runner || data.progress || run.details || '',
+                workspace: metrics.workspace || data.workspace || job.workspace || run.workspace || '',
+                updatedAt: new Date().toISOString()
+            });
+            if (data.status === 'completed' || data.status === 'failed') {
+                postTrainingTwinEvent(trainingRuns.find((item) => item.id === job.trainingRunId) || run);
+            }
+        }
+
+        async function runPromptTraining() {
+            const project = updateProjectLabels();
+            const basePrompt = (trainingPrompt?.value || '').trim();
+            if (!basePrompt) {
+                setTrainingStatus('Add a prompt first.', 'warn');
+                return;
+            }
+            const iterations = Math.max(1, Math.min(parseInt(trainingIterations?.value || '3', 10) || 3, 9));
+            setTrainingStatus(`Running ${iterations} prompt iteration(s)...`, '');
+            let previousSummary = '';
+            for (let index = 1; index <= iterations; index += 1) {
+                const iterationPrompt = buildTrainingModifierPrompt(
+                    basePrompt,
+                    `[TRAINING ITERATION ${index}/${iterations}] ${previousSummary}`.trim()
+                );
+                const likelihood = await predictTrainingExecution({
+                    prompt: iterationPrompt,
+                    language: 'auto',
+                    code_lines: 0,
+                    research_hits: 0,
+                    prior_pass_rate: summarizeTrainingRuns().passRate / 100
+                });
+                const startedAt = new Date().toISOString();
+                const start = performance.now();
+                try {
+                    const response = await fetch('/api/aegis/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: iterationPrompt, mode: kernelMode.value, project })
+                    });
+                    const data = await response.json();
+                    const responseMs = Math.round(performance.now() - start);
+                    const reply = data.reply || data.response || JSON.stringify(data);
+                    const run = {
+                        id: `prompt-${Date.now()}-${index}`,
+                        type: 'prompt-test',
+                        status: response.ok ? 'completed' : 'failed',
+                        project,
+                        prompt: iterationPrompt,
+                        responseMs,
+                        codeLines: countCodeLinesFromText(reply),
+                        locPerMinute: 0,
+                        researchHits: Array.isArray(data.sources) ? data.sources.length : 0,
+                        predictedRunProbability: likelihood.probability || 0,
+                        predictionSummary: likelihood.summary || '',
+                        testsPass: /tests? passed|pass\/fail:\s*pass|final status:\s*passed/i.test(reply) ? true : (/tests? failed|error|traceback/i.test(reply) ? false : undefined),
+                        startedAt,
+                        details: (reply || '').slice(0, 260)
+                    };
+                    upsertTrainingRun(run);
+                    postTrainingTwinEvent(run);
+                    previousSummary = `Previous response: ${responseMs}ms, ${run.codeLines} code lines.`;
+                    if (data.job_id) {
+                        trackAgenticJob(data.job_id, data.project || project, data.objective || iterationPrompt, data.job_type || 'agentic', {
+                            workspace: data.workspace || '',
+                            trainingRunId: run.id
+                        });
+                    }
+                } catch (error) {
+                    const run = {
+                        id: `prompt-${Date.now()}-${index}`,
+                        type: 'prompt-test',
+                        status: 'failed',
+                        project,
+                        prompt: iterationPrompt,
+                        responseMs: Math.round(performance.now() - start),
+                        codeLines: 0,
+                        researchHits: 0,
+                        predictedRunProbability: likelihood.probability || 0,
+                        testsPass: false,
+                        startedAt,
+                        details: error.message || 'Prompt probe failed'
+                    };
+                    upsertTrainingRun(run);
+                }
+            }
+            setTrainingStatus(`Prompt training completed: ${iterations} iteration(s).`, 'ok');
+        }
+
+        async function runAbTraining() {
+            const project = updateProjectLabels();
+            const basePrompt = (trainingPrompt?.value || '').trim();
+            if (!basePrompt) {
+                setTrainingStatus('Add a prompt first.', 'warn');
+                return;
+            }
+            const iterations = Math.max(1, Math.min(parseInt(trainingIterations?.value || '3', 10) || 3, 9));
+            const variants = [
+                {
+                    label: 'A',
+                    prompt: `${basePrompt}
+
+A/B Variant A: prioritize compact working code, generated-program execution, and fast self-tests.`
+                },
+                {
+                    label: 'B',
+                    prompt: `${basePrompt}
+
+A/B Variant B: prioritize research grounding, compressed algorithms, deployment gates, and statistical run prediction before execution.`
+                }
+            ];
+            setTrainingStatus(`Running A/B test: ${iterations} round(s), ${variants.length} variants.`, '');
+            for (let round = 1; round <= iterations; round += 1) {
+                for (const variant of variants) {
+                    const prompt = `${variant.prompt}
+
+Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pass/fail criteria.`;
+                    const likelihood = await predictTrainingExecution({
+                        prompt,
+                        language: 'auto',
+                        code_lines: 0,
+                        research_hits: 0,
+                        prior_pass_rate: summarizeTrainingRuns().passRate / 100
+                    });
+                    const startedAt = new Date().toISOString();
+                    const start = performance.now();
+                    try {
+                        const response = await fetch('/api/aegis/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: prompt, mode: kernelMode.value, project })
+                        });
+                        const data = await response.json();
+                        const reply = data.reply || data.response || JSON.stringify(data);
+                        const run = {
+                            id: `ab-${variant.label}-${Date.now()}-${round}`,
+                            type: `ab-test-${variant.label}`,
+                            status: response.ok ? 'completed' : 'failed',
+                            project,
+                            prompt,
+                            responseMs: Math.round(performance.now() - start),
+                            codeLines: countCodeLinesFromText(reply),
+                            locPerMinute: 0,
+                            researchHits: Array.isArray(data.sources) ? data.sources.length : 0,
+                            predictedRunProbability: likelihood.probability || 0,
+                            predictionSummary: likelihood.summary || '',
+                            testsPass: /tests? passed|pass\/fail:\s*pass|final status:\s*passed/i.test(reply) ? true : (/tests? failed|error|traceback/i.test(reply) ? false : undefined),
+                            startedAt,
+                            details: (reply || '').slice(0, 260)
+                        };
+                        upsertTrainingRun(run);
+                        postTrainingTwinEvent(run);
+                        if (data.job_id) {
+                            trackAgenticJob(data.job_id, data.project || project, data.objective || prompt, data.job_type || 'agentic', {
+                                workspace: data.workspace || '',
+                                trainingRunId: run.id
+                            });
+                        }
+                    } catch (error) {
+                        upsertTrainingRun({
+                            id: `ab-${variant.label}-${Date.now()}-${round}`,
+                            type: `ab-test-${variant.label}`,
+                            status: 'failed',
+                            project,
+                            prompt,
+                            responseMs: Math.round(performance.now() - start),
+                            codeLines: 0,
+                            researchHits: 0,
+                            predictedRunProbability: likelihood.probability || 0,
+                            testsPass: false,
+                            startedAt,
+                            details: error.message || 'A/B variant failed'
+                        });
+                    }
+                }
+            }
+            const recent = trainingRuns.filter((run) => /^ab-test-/.test(run.type || '')).slice(-iterations * variants.length);
+            const byVariant = variants.map((variant) => {
+                const runs = recent.filter((run) => run.type === `ab-test-${variant.label}`);
+                const score = runs.reduce((sum, run) => sum + (run.codeLines || 0) + (run.researchHits || 0) * 4 + (run.testsPass ? 30 : 0) - (run.responseMs || 0) / 1000, 0);
+                return { label: variant.label, score };
+            }).sort((a, b) => b.score - a.score);
+            setTrainingStatus(`A/B test completed. Current winner: Variant ${byVariant[0]?.label || 'unknown'}.`, 'ok');
+        }
+
+        async function startProgramTraining() {
+            const project = updateProjectLabels();
+            const objective = buildTrainingModifierPrompt(trainingPrompt?.value || 'Create and test a program that creates another program.');
+            const runId = `program-${Date.now()}`;
+            const startedAt = new Date().toISOString();
+            setTrainingStatus('Starting program-maker loop...', '');
+            try {
+                const likelihood = await predictTrainingExecution({
+                    prompt: objective,
+                    language: 'auto',
+                    code_lines: 0,
+                    research_hits: summarizeTrainingRuns().researchHits,
+                    prior_pass_rate: summarizeTrainingRuns().passRate / 100
+                });
+                const response = await fetch('/api/agentic/create-program', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        task: objective,
+                        project,
+                        hours: Math.max(1, Math.min(parseInt(trainingHours?.value || '8', 10) || 8, 24)),
+                        cpu_target: Math.max(15, Math.min(parseInt(trainingCpu?.value || '30', 10) || 30, 60))
+                    })
+                });
+                const data = await response.json();
+                const run = {
+                    id: runId,
+                    type: 'program-loop',
+                    status: data.status || 'started',
+                    project,
+                    prompt: objective,
+                    objective,
+                    responseMs: 0,
+                    codeLines: 0,
+                    locPerMinute: 0,
+                    researchHits: 0,
+                    predictedRunProbability: likelihood.probability || 0,
+                    predictionSummary: likelihood.summary || '',
+                    startedAt,
+                    jobId: data.job_id || '',
+                    workspace: data.workspace || '',
+                    testsPass: undefined
+                };
+                upsertTrainingRun(run);
+                if (data.job_id) {
+                    trackAgenticJob(data.job_id, data.project || project, data.objective || objective, data.job_type || 'program', {
+                        workspace: data.workspace || '',
+                        trainingRunId: runId
+                    });
+                    setTrainingStatus(`Program loop started: ${data.job_id}`, 'ok');
+                } else {
+                    setTrainingStatus('Program loop response did not include a job id.', 'warn');
+                }
+            } catch (error) {
+                upsertTrainingRun({
+                    id: runId,
+                    type: 'program-loop',
+                    status: 'failed',
+                    project,
+                    prompt: objective,
+                    responseMs: 0,
+                    codeLines: 0,
+                    researchHits: 0,
+                    predictedRunProbability: 0,
+                    testsPass: false,
+                    startedAt,
+                    details: error.message || 'Program loop failed to start'
+                });
+                setTrainingStatus('Program loop failed to start.', 'warn');
+            }
+        }
+
+        async function runResearchProbe() {
+            const project = updateProjectLabels();
+            const query = (trainingPrompt?.value || 'current project build and testing risks').trim();
+            const startedAt = new Date().toISOString();
+            const start = performance.now();
+            setTrainingStatus('Running research probe...', '');
+            try {
+                const response = await fetch(`/api/research/search?query=${encodeURIComponent(query)}&time_range=last_week&project=${encodeURIComponent(project)}`);
+                const data = await response.json();
+                const results = Array.isArray(data.results) ? data.results : [];
+                const run = {
+                    id: `research-${Date.now()}`,
+                    type: 'research-probe',
+                    status: response.ok ? 'completed' : 'failed',
+                    project,
+                    prompt: query,
+                    responseMs: Math.round(performance.now() - start),
+                    codeLines: 0,
+                    locPerMinute: 0,
+                    researchHits: results.length,
+                    testsPass: undefined,
+                    startedAt,
+                    details: results.slice(0, 3).map((item) => item.title || item.subject || item.source || 'research hit').join('; ')
+                };
+                upsertTrainingRun(run);
+                postTrainingTwinEvent(run);
+                setTrainingStatus(`Research probe returned ${results.length} hit(s).`, 'ok');
+            } catch (error) {
+                upsertTrainingRun({
+                    id: `research-${Date.now()}`,
+                    type: 'research-probe',
+                    status: 'failed',
+                    project,
+                    prompt: query,
+                    responseMs: Math.round(performance.now() - start),
+                    codeLines: 0,
+                    researchHits: 0,
+                    testsPass: false,
+                    startedAt,
+                    details: error.message || 'Research probe failed'
+                });
+                setTrainingStatus('Research probe failed.', 'warn');
+            }
+        }
+
+        async function startLongResearchCrawl() {
+            const project = updateProjectLabels();
+            const objective = buildTrainingModifierPrompt(trainingPrompt?.value || 'Build a long research dossier with compressed algorithms and deployment verification gates.');
+            const runId = `long-research-${Date.now()}`;
+            const startedAt = new Date().toISOString();
+            const hours = Math.max(8, Math.min(parseInt(trainingHours?.value || '8', 10) || 8, 24));
+            const cycles = Math.max(2, Math.min(hours, 24));
+            const likelihood = await predictTrainingExecution({
+                prompt: objective,
+                language: 'research',
+                code_lines: 0,
+                research_hits: summarizeTrainingRuns().researchHits,
+                prior_pass_rate: summarizeTrainingRuns().passRate / 100
+            });
+            setTrainingStatus(`Starting ${hours}h crawl with ${cycles} cycle(s)...`, '');
+            try {
+                const response = await fetch('/api/training/long-research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        task: objective,
+                        project,
+                        hours,
+                        cycles,
+                        max_results: 10,
+                        max_pages: 20
+                    })
+                });
+                const data = await response.json();
+                const run = {
+                    id: runId,
+                    type: 'long-research',
+                    status: data.status || 'started',
+                    project,
+                    prompt: objective,
+                    objective,
+                    responseMs: 0,
+                    codeLines: 0,
+                    locPerMinute: 0,
+                    researchHits: 0,
+                    predictedRunProbability: likelihood.probability || 0,
+                    predictionSummary: likelihood.summary || '',
+                    startedAt,
+                    jobId: data.job_id || '',
+                    workspace: data.outputs_dir || '',
+                    testsPass: undefined,
+                    details: `${hours}h crawl. Outputs: large document, compressed algorithms, deployment blueprint.`
+                };
+                upsertTrainingRun(run);
+                if (data.job_id) {
+                    trackAgenticJob(data.job_id, data.project || project, data.objective || objective, data.job_type || 'long_research', {
+                        workspace: data.outputs_dir || '',
+                        trainingRunId: runId
+                    });
+                    setTrainingStatus(`Long crawl started: ${data.job_id}. It is designed to stay active for ${hours} hour(s).`, 'ok');
+                } else {
+                    setTrainingStatus('Long crawl response did not include a job id.', 'warn');
+                }
+            } catch (error) {
+                upsertTrainingRun({
+                    id: runId,
+                    type: 'long-research',
+                    status: 'failed',
+                    project,
+                    prompt: objective,
+                    responseMs: 0,
+                    codeLines: 0,
+                    researchHits: 0,
+                    predictedRunProbability: likelihood.probability || 0,
+                    testsPass: false,
+                    startedAt,
+                    details: error.message || 'Long crawl failed to start'
+                });
+                setTrainingStatus('Long crawl failed to start.', 'warn');
+            }
+        }
+
+        async function refreshTrainingDashboard(showStatus = true) {
+            trainingRuns = readTrainingRuns();
+            renderTrainingDashboard();
+            try {
+                const response = await fetch('/api/system-twin/status');
+                if (response.ok) {
+                    renderTwinTrainingStatus(await response.json());
+                }
+                if (showStatus) {
+                    setTrainingStatus('Training metrics refreshed.', 'ok');
+                }
+            } catch (error) {
+                if (showStatus) {
+                    setTrainingStatus('Training metrics refreshed locally; twin status unavailable.', 'warn');
+                }
+            }
+        }
+
+        async function loadProjectDashboard(force = false) {
+            if (document.hidden && !force) {
+                return;
+            }
+            if (dashboardBusy && !force) {
+                return;
+            }
+
+            dashboardBusy = true;
+            const project = updateProjectLabels();
+
+            try {
+                const response = await fetch(`/api/project/dashboard?project=${encodeURIComponent(project)}`);
+                const data = await response.json();
+
+                const projectTimescale = data.project_timescale || {};
+                const projectVector = data.project_vector || {};
+                const reasoningNotes = data.recent_reasoning_notes || [];
+                const vectorMemories = data.recent_vector_memories || [];
+                const secretKeys = data.secret_keys || [];
+                const sops = data.sops || {};
+
+                projectTimescaleCount.textContent = String(projectTimescale.timescale_files || 0);
+                projectVectorCount.textContent = String(projectVector.semantic_points || projectVector.lexical_points || 0);
+                projectSecretCount.textContent = String(secretKeys.length);
+                projectReasoningCount.textContent = String(
+                    reasoningNotes.length || (projectTimescale.reasoning_files || []).length || 0
+                );
+
+                reasoningNoteList.innerHTML = buildMiniList(
+                    reasoningNotes,
+                    'No project reasoning notes yet.',
+                    (item) => `
+                        <div class="list-item">
+                            <strong>${escapeHtml(item.name || 'Reasoning note')}</strong>
+                            ${escapeHtml((item.content || '').slice(0, 260)).replace(/\n/g, '<br>')}
+                        </div>
+                    `
+                );
+
+                vectorMemoryList.innerHTML = buildMiniList(
+                    vectorMemories,
+                    'No project vector memories yet.',
+                    (item) => `
+                        <div class="list-item">
+                            <strong>${escapeHtml(`${item.kind || 'memory'} / ${item.role || 'unknown'}`)}</strong>
+                            ${escapeHtml((item.content || '').slice(0, 220)).replace(/\n/g, '<br>')}
+                        </div>
+                    `
+                );
+
+                renderSopList(sopTools, sops.tools || []);
+                renderSopList(sopCoding, sops.coding || []);
+                renderSopList(sopDesktop, sops.desktop_automation || []);
+
+                vectorStatusSub.textContent = `Lex ${projectVector.lexical_points || 0} / Sem ${projectVector.semantic_points || 0}`;
+            } catch (error) {
+                reasoningNoteList.innerHTML = '<div class="empty-state">Dashboard load failed.</div>';
+                vectorMemoryList.innerHTML = '<div class="empty-state">Vector memory load failed.</div>';
+                sopTools.innerHTML = '<div class="empty-state">Tool SOPs unavailable.</div>';
+                sopCoding.innerHTML = '<div class="empty-state">Coding SOPs unavailable.</div>';
+                sopDesktop.innerHTML = '<div class="empty-state">Desktop SOPs unavailable.</div>';
+            } finally {
+                dashboardBusy = false;
+            }
+        }
+
+        function trackAgenticJob(jobId, project, objective, jobType = 'agentic', options = {}) {
+            if (!jobId) {
+                return;
+            }
+            const existing = trackedJobs.find((job) => job.jobId === jobId);
+            if (existing) {
+                existing.project = project || existing.project || getActiveProject();
+                existing.objective = objective || existing.objective || '';
+                existing.jobType = jobType || existing.jobType || 'agentic';
+                existing.workspace = options.workspace || existing.workspace || '';
+                existing.trainingRunId = options.trainingRunId || existing.trainingRunId || '';
+                existing.lastSeen = new Date().toISOString();
+            } else {
+                trackedJobs.push({
+                    jobId,
+                    project: project || getActiveProject(),
+                    objective: objective || '',
+                    jobType: jobType || 'agentic',
+                    workspace: options.workspace || '',
+                    trainingRunId: options.trainingRunId || '',
+                    createdAt: new Date().toISOString(),
+                    lastSeen: new Date().toISOString()
+                });
+            }
+            trackedJobs = trackedJobs.slice(-12);
+            persistUiState();
+            pollTrackedJobs(true);
+        }
+
+        function formatJobStatusLine(data, job) {
+            const label = (job.jobType || data.job_type || 'agentic').replace(/_/g, ' ');
+            const progress = data.progress ? ` (${data.progress})` : '';
+            return `${label} job ${job.jobId} ${data.status || 'updated'}${progress}`;
+        }
+
+        async function pollTrackedJobs(force = false) {
+            if (!trackedJobs.length) {
+                return;
+            }
+            const remaining = [];
+            for (const job of trackedJobs) {
+                try {
+                    const response = await fetch(`/api/agentic/job/${encodeURIComponent(job.jobId)}/result`);
+                    if (!response.ok) {
+                        remaining.push(job);
+                        continue;
+                    }
+                    const data = await response.json();
+                    const liveMetrics = data.metrics || (job.workspace ? await fetchTrainingWorkspaceMetrics(job.workspace) : {});
+                    updateTrainingJobRun(job, data, liveMetrics);
+                    if (data.status === 'completed' || data.status === 'failed') {
+                        const thoughts = formatJobStatusLine(data, job);
+                        const reply = data.reply || `Agentic job ${job.jobId} ${data.status}.`;
+                        addMessage(reply, false, thoughts, {
+                            jobId: job.jobId,
+                            jobType: job.jobType || 'agentic',
+                            project: job.project || getActiveProject()
+                        });
+                        loadProjectDashboard(true);
+                    } else {
+                        job.lastSeen = new Date().toISOString();
+                        if (force) {
+                            composerRuntimeLabel.textContent = formatJobStatusLine(data, job);
+                        }
+                        remaining.push(job);
+                    }
+                } catch (error) {
+                    job.lastSeen = new Date().toISOString();
+                    remaining.push(job);
+                }
+            }
+            trackedJobs = remaining;
+            persistUiState();
         }
 
         async function sendMessage(retry = false) {
+            if (chatBusy) {
+                return;
+            }
+
+            const project = updateProjectLabels();
             const text = retry ? lastPrompt : input.value.trim();
-            if (!text) return;
+            if (!text) {
+                return;
+            }
+
             if (!retry) {
                 addMessage(text, true);
                 lastPrompt = text;
+                persistUiState();
             }
+
             input.value = '';
-            
+            persistUiState();
+            chatBusy = true;
+            sendBtn.disabled = true;
+            retryBtn.disabled = true;
+            activeChatController = new AbortController();
+            const requestStart = performance.now();
+
             const botMsgDiv = document.createElement('div');
-            botMsgDiv.className = `message bot`;
-            botMsgDiv.innerHTML = `<div class="avatar bot-avatar">✨</div><div class="bot-content"></div>`;
+            botMsgDiv.className = 'message bot';
+            botMsgDiv.innerHTML = '<div class="avatar bot-avatar">A</div><div class="bot-content"></div>';
             chatContainer.appendChild(botMsgDiv);
             const contentArea = botMsgDiv.querySelector('.bot-content');
-            contentArea.innerHTML = `<div class="bubble">...</div>`;
+            renderBotContent(contentArea, '', 'Waiting for reply...');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
                 const response = await fetch('/api/aegis/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    signal: activeChatController.signal,
+                    body: JSON.stringify({
                         message: text,
                         mode: kernelMode.value,
-                        retry: retry
+                        retry: retry,
+                        project: project
                     })
                 });
 
-                if (response.headers.get('content-type')?.includes('text/event-stream')) {
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('text/event-stream')) {
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
-                    let fullText = "";
-                    let thoughts = "";
-                    contentArea.innerHTML = "";
+                    let buffer = '';
+                    let fullText = '';
+                    let thoughts = '';
+                    let errorText = '';
+                    let streamJob = null;
+                    let telemetry = null;
+                    let kqmlTrace = [];
+
+                    const handleStreamLine = (line) => {
+                        if (!line) {
+                            return;
+                        }
+                        try {
+                            const data = JSON.parse(line);
+                            if (data.thoughts) {
+                                thoughts = data.thoughts;
+                            }
+                            if (data.reply_chunk) {
+                                fullText += data.reply_chunk;
+                            }
+                            if (data.error) {
+                                errorText = data.error;
+                            }
+                            if (data.job_id) {
+                                streamJob = {
+                                    jobId: data.job_id,
+                                    jobType: data.job_type || 'agentic',
+                                    project: data.project || project,
+                                    objective: data.objective || text
+                                };
+                            }
+                            if (data.telemetry) {
+                                telemetry = data.telemetry;
+                            }
+                            if (Array.isArray(data.kqml_trace)) {
+                                kqmlTrace = data.kqml_trace;
+                            }
+                            renderBotContent(contentArea, thoughts, fullText || 'Waiting for reply...', errorText);
+                        } catch (error) {
+                            fullText += (fullText ? '\n' : '') + line;
+                            renderBotContent(contentArea, thoughts, fullText, errorText);
+                        }
+                    };
 
                     while (true) {
                         const { done, value } = await reader.read();
-                        if (done) break;
-                        
-                        const chunk = decoder.decode(value);
-                        const lines = chunk.split('\n');
-                        
-                        for (const line of lines) {
-                            if (!line.trim()) continue;
-                            try {
-                                const data = JSON.parse(line);
-                                if (data.thoughts) {
-                                    thoughts = data.thoughts;
-                                    contentArea.innerHTML = `<span class="thoughts">${thoughts}</span><div class="bubble">...</div>`;
-                                }
-                                if (data.reply_chunk) {
-                                    fullText += data.reply_chunk;
-                                    const bubble = contentArea.querySelector('.bubble') || document.createElement('div');
-                                    bubble.className = 'bubble';
-                                    bubble.innerHTML = fullText.replace(/\n/g, '<br>');
-                                    if (!contentArea.querySelector('.bubble')) contentArea.appendChild(bubble);
-                                }
-                                if (data.error) {
-                                    contentArea.innerHTML += `<div class="bubble" style="color: #8B0000;">⚠️ ${data.error}</div>`;
-                                }
-                            } catch (e) {
-                                if (line.startsWith("[CLOUD]")) {
-                                    contentArea.innerHTML = `<div class="bubble">${line.replace(/\n/g, '<br>')}</div>`;
-                                }
-                            }
+                        if (done) {
+                            break;
                         }
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+                        lines.forEach((line) => handleStreamLine(line.trim()));
                         chatContainer.scrollTop = chatContainer.scrollHeight;
                     }
-                    // Add buttons after stream completes
-                    const btnDiv = document.createElement('div');
-                    btnDiv.className = 'action-btns';
-                    btnDiv.innerHTML = `
-                        <button class="action-btn" onclick="sendFeedback(0, 1, this)">👍</button>
-                        <button class="action-btn" onclick="sendFeedback(0, -1, this)">👎</button>
-                        <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">↻</button>
-                    `;
-                    contentArea.appendChild(btnDiv);
+
+                    if (buffer.trim()) {
+                        handleStreamLine(buffer.trim());
+                    }
+
+                    if (!fullText.trim() && !errorText) {
+                        renderBotContent(
+                            contentArea,
+                            thoughts || 'Local stream finished without tokens.',
+                            'No reply came back from the active model. Use Retry or switch kernel mode.',
+                            ''
+                        );
+                    }
+
+                    const persistedReply = (fullText.trim() || (errorText ? `Error: ${errorText}` : 'No reply came back from the active model.')).trim();
+                    const responseMs = Math.round((telemetry && telemetry.elapsed_ms) || (performance.now() - requestStart));
+                    const logicPoints = (telemetry && telemetry.logic_points) || [];
+                    lastAssistantFeedback = {
+                        runId: `chat-${Date.now()}`,
+                        type: logicPoints.includes('discussion_intent') ? 'organic-discussion' : 'chat-response',
+                        project,
+                        prompt: text,
+                        response: persistedReply,
+                        route: (telemetry && telemetry.route) || 'local_chat',
+                        responseMs,
+                        logicPoints,
+                        kqmlTrace
+                    };
+                    upsertTrainingRun({
+                        id: lastAssistantFeedback.runId,
+                        type: lastAssistantFeedback.type,
+                        status: 'observed',
+                        project,
+                        prompt: text,
+                        responseMs,
+                        codeLines: countCodeLinesFromText(persistedReply),
+                        researchHits: 0,
+                        predictedRunProbability: 0,
+                        testsPass: undefined,
+                        logicPoints,
+                        kqmlTrace,
+                        details: persistedReply.slice(0, 260)
+                    });
+                    rememberMessage(persistedReply, false, thoughts, streamJob || { project });
+                    if (streamJob) {
+                        trackAgenticJob(streamJob.jobId, streamJob.project, streamJob.objective, streamJob.jobType);
+                    }
+                    contentArea.innerHTML += renderActions();
                 } else {
                     const data = await response.json();
-                    contentArea.innerHTML = "";
-                    if (data.thoughts) contentArea.innerHTML += `<span class="thoughts">${data.thoughts}</span>`;
-                    contentArea.innerHTML += `<div class="bubble">${data.reply.replace(/\n/g, '<br>')}</div>`;
-                    contentArea.innerHTML += `
-                        <div class="action-btns">
-                            <button class="action-btn" onclick="sendFeedback(0, 1, this)">👍</button>
-                            <button class="action-btn" onclick="sendFeedback(0, -1, this)">👎</button>
-                            <button class="action-btn" onclick="sendMessage(true)" title="Refresh Response">↻</button>
-                        </div>
-                    `;
+                    const replyText = data.reply || 'No response returned.';
+                    const telemetry = data.telemetry || null;
+                    const kqmlTrace = Array.isArray(data.kqml_trace) ? data.kqml_trace : [];
+                    const responseMs = Math.round((telemetry && telemetry.elapsed_ms) || (performance.now() - requestStart));
+                    const logicPoints = (telemetry && telemetry.logic_points) || [];
+                    renderBotContent(contentArea, data.thoughts || '', replyText);
+                    lastAssistantFeedback = {
+                        runId: `chat-${Date.now()}`,
+                        type: logicPoints.includes('discussion_intent') ? 'organic-discussion' : 'chat-response',
+                        project,
+                        prompt: text,
+                        response: replyText,
+                        route: (telemetry && telemetry.route) || (data.job_type ? data.job_type : 'direct_reply'),
+                        responseMs,
+                        logicPoints,
+                        kqmlTrace
+                    };
+                    upsertTrainingRun({
+                        id: lastAssistantFeedback.runId,
+                        type: lastAssistantFeedback.type,
+                        status: 'observed',
+                        project,
+                        prompt: text,
+                        responseMs,
+                        codeLines: countCodeLinesFromText(replyText),
+                        researchHits: Array.isArray(data.sources) ? data.sources.length : 0,
+                        predictedRunProbability: 0,
+                        testsPass: undefined,
+                        logicPoints,
+                        kqmlTrace,
+                        details: replyText.slice(0, 260)
+                    });
+                    rememberMessage(replyText, false, data.thoughts || '', {
+                        jobId: data.job_id || null,
+                        jobType: data.job_type || null,
+                        project,
+                    });
+
+                    if (data.job_id) {
+                        const jobLabel = data.job_type === 'program' ? 'Program job' : 'Research job';
+                        contentArea.innerHTML += `<div class="list-item" style="margin-top: 10px;">${escapeHtml(jobLabel)}: <strong>${escapeHtml(data.job_id)}</strong></div>`;
+                        trackAgenticJob(data.job_id, data.project || project, data.objective || text, data.job_type || 'agentic');
+                        setTimeout(() => loadProjectDashboard(true), 2500);
+                        setTimeout(() => loadProjectDashboard(true), 7000);
+                    }
+
+                    contentArea.innerHTML += renderActions();
                 }
-            } catch (e) {
-                contentArea.innerHTML = `<div class="bubble">⚠️ Shield Down. Re-mapping manifold...</div>`;
+            } catch (error) {
+                const isAbort = error && error.name === 'AbortError';
+                const failureText = isAbort ? 'Superseded by a newer request.' : 'Request failed.';
+                const failureDetail = error.message || 'Unknown error';
+                const responseMs = Math.round(performance.now() - requestStart);
+                renderBotContent(
+                    contentArea,
+                    isAbort ? 'Request interrupted' : 'Runtime error',
+                    failureText,
+                    failureDetail
+                );
+                lastAssistantFeedback = {
+                    runId: `chat-error-${Date.now()}`,
+                    type: isAbort ? 'chat-abort' : 'chat-error',
+                    project,
+                    prompt: text,
+                    response: `${failureText} ${failureDetail}`.trim(),
+                    route: 'local_chat',
+                    responseMs,
+                    logicPoints: ['ui_transport_error']
+                };
+                upsertTrainingRun({
+                    id: lastAssistantFeedback.runId,
+                    type: lastAssistantFeedback.type,
+                    status: 'error',
+                    project,
+                    prompt: text,
+                    responseMs,
+                    codeLines: 0,
+                    researchHits: 0,
+                    predictedRunProbability: 0,
+                    testsPass: false,
+                    logicPoints: lastAssistantFeedback.logicPoints,
+                    details: lastAssistantFeedback.response.slice(0, 260)
+                });
+                rememberMessage(lastAssistantFeedback.response, false, isAbort ? 'Request interrupted' : 'Runtime error', { project });
+                contentArea.innerHTML += renderActions();
+            } finally {
+                chatBusy = false;
+                activeChatController = null;
+                sendBtn.disabled = false;
+                retryBtn.disabled = false;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                loadProjectDashboard(true);
+                pollStatus();
             }
-            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        refreshDashboardBtn.onclick = () => loadProjectDashboard(true);
+        focusResearchBtn.onclick = () => applyPrompt('/research map the current project risks and next coding tasks');
+
+        if (runTrainingPromptBtn) runTrainingPromptBtn.onclick = () => runPromptTraining();
+        if (runAbTrainingBtn) runAbTrainingBtn.onclick = () => runAbTraining();
+        if (startProgramTrainingBtn) startProgramTrainingBtn.onclick = () => startProgramTraining();
+        if (longCrawlBtn) longCrawlBtn.onclick = () => startLongResearchCrawl();
+        if (researchProbeBtn) researchProbeBtn.onclick = () => runResearchProbe();
+        if (startAiderTerminalBtn) startAiderTerminalBtn.onclick = () => startAiderTerminal();
+        if (startGeneticCoderBtn) startGeneticCoderBtn.onclick = () => startGeneticCoder();
+        if (stopAiderTerminalBtn) stopAiderTerminalBtn.onclick = () => stopAiderTerminal();
+        if (refreshAiderTerminalBtn) refreshAiderTerminalBtn.onclick = () => refreshAiderTerminal(true);
+        if (refreshTrainingBtn) refreshTrainingBtn.onclick = () => refreshTrainingDashboard(true);
         sendBtn.onclick = () => sendMessage();
         retryBtn.onclick = () => sendMessage(true);
-        input.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+        input.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        input.addEventListener('input', () => persistUiState());
+        projectInput.addEventListener('change', () => {
+            updateProjectLabels();
+            loadProjectDashboard(true);
+        });
+        kernelMode.addEventListener('change', () => {
+            persistUiState();
+            pollStatus();
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                pollStatus();
+                loadProjectDashboard(false);
+                pollTrackedJobs(false);
+            }
+        });
+
+        window.applyPrompt = applyPrompt;
+        window.sendMessage = sendMessage;
+        window.sendFeedback = sendFeedback;
+        window.clearFullConversation = clearFullConversation;
+
+        restoreUiState();
+        renderStoredChatHistory();
+        updateProjectLabels();
+        refreshTrainingDashboard(false);
+        pollStatus();
+        loadProjectDashboard(true);
+        pollTrackedJobs(true);
+        setInterval(() => {
+            if (!document.hidden) {
+                pollStatus();
+            }
+        }, 10000);
+        setInterval(() => {
+            if (!document.hidden) {
+                loadProjectDashboard(false);
+                refreshTrainingDashboard(false);
+            }
+        }, 30000);
+        setInterval(() => {
+            if (!document.hidden) {
+                pollTrackedJobs(false);
+            }
+        }, 5000);
     </script>
 </body>
 </html>

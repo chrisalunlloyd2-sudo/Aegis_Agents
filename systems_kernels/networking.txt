@@ -1,0 +1,10 @@
+Rules:
+- Identify protocol, host, port, authentication, timeout, and retry behavior first.
+- Prefer TLS/SSL for credentials and network login.
+- Separate connection setup from parsing, business logic, and UI.
+- For local web services, verify the listener, route, status code, and response body.
+
+Verification:
+- Test network code with mocks first.
+- Use short timeouts.
+- Record exact connection errors, status codes, and response samples.

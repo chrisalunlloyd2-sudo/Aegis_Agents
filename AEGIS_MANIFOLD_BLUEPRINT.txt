@@ -1,164 +1,233 @@
 ================================================================================
-             /$$$$$$  /$$$$$$$$  /$$$$$$  /$$$$$$  /$$$$$$ 
-            /$$__  $$| $$_____/ /$$__  $$|_  $$_/ /$$__  $$
-           | $$  \ $$| $$      | $$  \__/  | $$  | $$  \__/
-           | $$$$$$$$| $$$$$   | $$ /$$$$  | $$  |  $$$$$$ 
-           | $$__  $$| $$__/   | $$|_  $$  | $$   \____  $$
-           | $$  | $$| $$      | $$  \ $$  | $$   /$$  \ $$
-           | $$  | $$| $$$$$$$$|  $$$$$$/ /$$$$$$|  $$$$$$/
-           |__/  |__/|________/ \______/ |______/ \______/ 
-                   THE CANADIAN ULTRA MANIFOLD
-================================================================================
-       AEGIS-DIMON: 180 IQ KERNEL OPERATIONAL ARCHITECTURE
+AEGIS MANIFOLD BLUEPRINT
+Canonical runtime snapshot for the live local-first stack
+Last refreshed: 2026-04-29
 ================================================================================
 
-[ 1. CORE ENGINES & BRIDGES ] - The Central Nervous System
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| Engine.py                 | The Master Process. Handles VRAM fencing,        |
-|                           | augmentation, and sub-engine orchestration.      |
-|                           |                                                  |
-| gemini_bridge_api_fast.py | High-performance FastAPI bridge. Handles API     |
-|                           | limits, RAG routing, UI delivery, and triggers   |
-|                           | programmatic failovers to local CodeGemma:2b.    |
-|                           |                                                  |
-| gemini_bridge.py          | Core Python API wrapping the Gemini SDK.         |
-|                           |                                                  |
-| gemini_bridge_minimal.py  | Lean Flask API for simple task execution.        |
-+---------------------------+--------------------------------------------------+
+STATUS
+- Local-only blueprint is active.
+- Main API is `gemini_bridge_api_fast.py` on port `5005`.
+- Primary model is `aegis-gemma2-abliterated:2b-q8`.
+- Chat/code discussion lane remains local-first through `aegis-gemma2-abliterated:2b-q8`.
+- Aider terminal lane is installed in `vendor/aider_venv` and callable through the Web UI.
+- Aider's current local model default for the terminal lane is `qwen2.5:3b` because it answered the baseline exact-response probe more cleanly than the smaller coder-tagged models.
+- Heuristic genetic coder lane is active and passed a compile/runtime smoke test.
+- Long-reply mode is expanded through explicit Ollama context/output knobs instead of the old 180-token simple-mode cap.
+- Intel Lava neuromorphic package/hardware is disabled by default; the local Lava-ready event plane is active for KQML/GC/SOAP recording.
+- Tiny tool and micro-coder lane is `qwen2.5-coder:1.5b`.
+- Coordinator/worker split is active, but the current preferred build path is now: user/Aider outline -> heuristic genetic coder -> compile/test evidence -> SQLite success memory.
+- Remote compute lanes are disabled by default.
+- Personal system twin substrate is active.
 
-[ 2. DIMON OPERATOR SUITE ] - The Diffeomorphic Manifold Mapper
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| dimon_operator_engine.py  | Maps irregular code shapes into a 128-dim        |
-|                           | unified Reference Domain (Banach space).         |
-|                           |                                                  |
-| dimon_mionet_logic.py     | Neural Operator (MioNet). Learns mathematical    |
-|                           | representations of functions and pushes them     |
-|                           | to TimescaleDB or the SQLite Unified Manifold.   |
-|                           |                                                  |
-| dimon_neural_bridge.py    | Connects code embeddings to the DIMON space.     |
-|                           |                                                  |
-| DIMON_CORE_DISTILLED.py   | The distilled logic engine. Evaluates semantic   |
-|                           | and structural bounds of the neural map.         |
-+---------------------------+--------------------------------------------------+
+CORE RUNTIME
+- `gemini_bridge_api_fast.py`
+  Local-first FastAPI bridge. Owns health reporting, routing, lens context, local tool policy, project lanes, and the runtime feature surface.
+- `Engine.py`
+  Legacy orchestrator and bootstrap utility for broader engine control.
+- `gemma_tools.py`
+  Request profiling, tool selection rules, orchestration posture, and the italicized code-intent convention for PicoClaw delegation.
+- `aegis_toolkit.py`
+  Registered tool surface for file actions, project memory, web lookup, desktop automation bridges, PicoClaw delegation, and `browser-use`.
+- `aider_terminal_lane.py`
+  Terminal evidence lane for Aider. It starts the vendored Aider executable, records stdout/stderr/output tails, and exposes `/api/aider/*` status and job endpoints.
+- `heuristic_genetic_coder.py`
+  Heuristic genetic coding lane with set-theory state, SOAP-style heuristic weights, KQML trace records, compile/runtime tests, and SQLite persistence for successful code tries.
+- `lava_event_orchestrator.py`
+  Lava-ready event/control plane. Records KQML-shaped GC/SOAP/tool events in SQLite, exposes `/api/lava/*`, and feeds passing candidate lessons back into Fabric wisdom without requiring Loihi or installing Intel Lava yet.
 
-[ 3. LOGIC & INTELLIGENCE ] - The 180 IQ Problem Solvers
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| logic_cube_solver.py      | Discrete Gradient Descent solver. Escapes        |
-|                           | bit-flipping loops via Stochastic Jumps.         |
-|                           |                                                  |
-| advanced_analytics.py     | Tracks metrics, tasks, and system performance.   |
-|                           |                                                  |
-| knowledge_base_api.py     | API interface for TimescaleDB storage (RAG).     |
-+---------------------------+--------------------------------------------------+
+ACTIVE LOCAL MODELS
+- `aegis-gemma2-abliterated:2b-q8`
+  Default local coordinator and code model for the main assistant path.
+- `qwen2.5-coder:1.5b`
+  Tiny worker model kept available for tool-sized coding, patch insertion, and verification-oriented delegation.
+- `nomic-embed-text:latest`
+  Embedding backend for local semantic retrieval.
 
-[ 4. MEMORY & STORAGE ] - The Memory Vault (UPGRADED 2026-04-17)
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| timescale_memory.py       | Revolutionary file-based memory system.          |
-|                           | Replaces vector RAG with hierarchical storage,   |
-|                           | boolean logic compression, and indexed search.   |
-|                           | 5KB chunks, 60 heartbeats/hour, weekly summaries.|
-|                           |                                                  |
-| agentic_crawler_db.py     | Web crawler database with 5KB organized chunks.  |
-|                           | Pearson R-value correlation analysis, unknown    |
-|                           | cause detection, automatic 30-day pruning.       |
-|                           |                                                  |
-| gemini_bridge_rag.py      | Legacy RAG (deprecated). Replaced by timescale.  |
-|                           |                                                  |
-| gemini_bridge.db          | SQLite Fallback for session/conversation data.   |
-+---------------------------+--------------------------------------------------+
+SIDECARS
+- `vendor/aider_venv/`
+  Isolated Aider installation. Aider is used as a coding outline/terminal partner, not as a hidden replacement for the Web UI.
+- `picoclaw_bridge.py`
+  PicoClaw-based execution sidecar bridge. Uses ACL/KQML-style task packets plus italicized intent markers, stays stateless, avoids DB coupling, and now prefers direct local Ollama chat for the abliterated Gemma basis.
+- `vendor/picoclaw_runtime/config.json`
+  Minimal PicoClaw home. Tuned for short micro-coder runs instead of large autonomous sessions.
+- `browser_use_bridge.py`
+  Wrapper for isolated browser automation tasks.
+- `browser_use_worker.py`
+  Browser-use worker process running inside `vendor/browser_use_venv`.
 
-[ 5. EXTENSIONS & UX ] - The Proxy to the "2D World"
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| aegis_ui_clone.html       | The primary visual interface.                    |
-|                           |                                                  |
-| gemini_extension/         | Chrome Extension injected into the browser.      |
-|  |- manifest.json         | Extends code environments with Dark Theme and    |
-|  |- content.js            | TimescaleDB synced RAG context triggers.         |
-|  |- notes_inject.js       |                                                  |
-+---------------------------+--------------------------------------------------+
+SIDECAR TRUTH NOTES
+- Aider is installed and visible through `/api/aider/status`.
+- Aider's terminal lane is functional, but local model quality and LiteLLM/Ollama transport speed still need calibration before large coding jobs.
+- PicoClaw is integrated and callable today through `delegate_picoclaw`.
+- PicoClaw is a task worker, not a memory authority. It does not need the main DB to do its job.
+- The native `picoclaw.exe agent --message ...` path is still less reliable than desired on this machine.
+- The active stable path is direct-first delegation into `aegis-gemma2-abliterated:2b-q8`.
+- `browser-use` is real and working for scoped browser tasks, but it is intentionally not the main orchestrator.
 
-[ 6. SCRIPTS & UTILITIES ] - The Hands
-| AEGIS_Launch.bat          | Master launcher with UAC elevation for Ollama.   |
-|                           | Starts Ollama, FastAPI, Cloudflare tunnel.       |
-+---------------------------+--------------------------------------------------+
+MEMORY AND STORAGE
+- `timescale_memory.py`
+  Readable file-based project memory and optional reasoning note storage.
+- `vector_memory.py`
+  Local Qdrant-backed semantic plus lexical retrieval.
+- `agentic_crawler_db.py`
+  Research chunking, crawler artifacts, and report persistence.
+- `gemini_bridge.db`
+  SQLite session and runtime persistence with WAL enabled.
+- `vector_memory_db/`
+  Local vector store for semantic recall.
 
-[ 7. AGENTIC LOOP SYSTEM ] - The 100+ Step Reasoner (NEW 2026-04-17)
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| agentic_loop_controller.py| Multi-step task decomposition (4-100+ steps).    |
-|                           | Asynchronous background execution with job       |
-|                           | tracking. Recursive summarization every 5 steps  |
-|                           | prevents context drift. Automatic retry logic.   |
-|                           |                                                  |
-| agentic_crawler_db.py     | Web crawler database with 5KB organized chunks.  |
-|                           | Pearson R-value correlation analysis. Unknown    |
-|                           | cause detection. Automatic 30-day pruning.       |
-|                           | Domain-based organization and indexing.          |
-|                           |                                                  |
-| agentic_demo.py           | Full demonstration of agentic loop system.       |
-|                           | Shows task decomposition, async execution,       |
-|                           | correlation analysis, and database pruning.      |
-+---------------------------+--------------------------------------------------+
+AGENTIC BUILD LOOP
+- `agentic_loop_controller.py`
+  Multi-step task decomposition and async job orchestration.
+- `local_program_loop.py`
+  Time-boxed research -> plan -> execute -> test -> repair loop for "create program" style background jobs.
+- Build artifacts are written under `agentic_jobs/` so loops stay inspectable instead of hidden.
 
-[ 8. DOCUMENTATION ] - The Knowledge Base
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| README.md                 | Main documentation with quick start guide.       |
-|                           |                                                  |
-| AGENTIC_SYSTEM_GUIDE.md   | Complete 429-line guide for agentic loop system. |
-|                           | Includes API reference, examples, best practices.|
-|                           |                                                  |
-| DIAGNOSTIC_REPORT.md      | System diagnostics and troubleshooting guide.    |
-|                           |                                                  |
-| TOOL_CALLING_GUIDE.md     | Documentation for Gemma 2B tool calling.         |
-+---------------------------+--------------------------------------------------+
-+---------------------------+--------------------------------------------------+
-| COMPONENT                 | FUNCTION                                         |
-+---------------------------+--------------------------------------------------+
-| MOLTBOOK_STRESS_TEST.py   | Validates DB WAL, VRAM, and API stability.       |
-|                           |                                                  |
-| phone_automation_script.js| External script runner (Phone linking via JS).   |
-|                           |                                                  |
-| Aegis_Igniter.py          | Bootloader for the Aegis Agents framework.       |
-+---------------------------+--------------------------------------------------+
+HEURISTIC GENETIC CODER LOOP
+- `heuristic_genetic_coder.py`
+  Uses a bounded generate/mutate/test/select loop for Python candidates.
+- Current verified flow:
+  1. Receive Aider/user outline.
+  2. Build `AskSet`, `SourceSnippetSet`, `ConstraintSet`, `CodeSet`, `TestSet`, `DebuggerSet`, and `EvidenceSet`.
+  3. Generate a seed candidate.
+  4. Compile with `python -m py_compile`.
+  5. Run `test_app.py`.
+  6. Build `DebuggerSet` from compiler/runtime output.
+  7. Feed bounded repair hints from `DebuggerSet` into the next mutation.
+  8. Score fitness and execution likelihood.
+  9. Update SOAP-style heuristic weights.
+  10. Persist successful code tries to SQLite.
+- Smoke result:
+  `genetic-1777438289-d5b090df` completed with compile pass, runtime pass, best fitness `0.9072`, and one success record in `genetic_code_successes`.
+- GitHub/web snippets are represented as `SourceSnippetSet`; they influence candidate generation but are not run or installed automatically.
+- Decompile/compile/debugger support is an adapter inside the genetic fitness loop. Vector35/debugger is a Binary Ninja debugger plugin; when the Binary Ninja/toolchain side is confirmed, its traces should enter `DebuggerSet`, propose bounded fixes, then recompile and pass/fail exactly like the Python-first loop.
+
+PERSONAL SYSTEM TWIN
+- `personal_system_twin.py` records structured local workflow events and derives compact habit hints.
+- Events are stored under `system_twin/` as append-only JSONL plus `latest_snapshot.json`.
+- `/api/lens/update` now feeds Lens events into the twin.
+- `/api/system-twin/status` and `/api/system-twin/event` expose a small local API for status and structured event ingestion.
+- Trust posture: no screenshots, clipboard contents, keystrokes, or raw chat logs are collected by this layer.
+
+LENS AND CONTEXT OBSERVATION
+- Lens state now lives directly inside `gemini_bridge_api_fast.py`.
+- `/api/lens/update` accepts activity, summary, node, timestamp, and confidence.
+- High-confidence debugging context is injected into prompts to resolve vague phrases such as "the app" or "what should I do next."
+- The maintenance router is suppressed when the lens clearly indicates a live code-debugging context unless the user explicitly asks about system health or machine resources.
+- Known limitation: stale project-memory fragments can still bleed into some high-confidence debugging replies and need one more hygiene pass.
+
+INTEL LAVA / LOIHI BUILD ROADMAP
+- Lava means Intel's open-source neuromorphic software framework for neuro-inspired, event-driven applications and Loihi/Loihi 2-style research workflows.
+- Direction: this workstation acts as the AEGIS control plane; another machine can become the Lava/Loihi build host.
+- Current implemented piece: local Lava-ready event plane, not Loihi execution.
+- `lava_event_orchestrator.py` records KQML-shaped events, GC/SOAP state, and candidate evidence in SQLite.
+- Verified GC successes are upserted into Fabric wisdom as weighted project memory.
+- Web/API visibility: `/api/lava/status`, `/api/lava/events`, and the Testing & Training panel.
+- Step 1: Define KQML event packets for tool pings, agent readiness, timeouts, retry signals, and routing decisions.
+- Step 2: Add a local Lava-ready event adapter that records those events locally without changing tool behavior. DONE.
+- Step 3: Add `/api/lava/status` and `/api/lava/events` as a recorder/control-plane API only. DONE.
+- Step 4: Test a local CPU-simulation event graph after explicit install confirmation.
+- Step 5: Prepare a remote Loihi builder profile: host, Python path, Lava install path, workspace, and SSH transport.
+- Step 6: Let Aider/genetic coder build the remote Lava/Loihi project in a dedicated workspace, with compile/run evidence returning as KQML.
+- Step 7: Map AEGIS sets into Lava concepts: `AskSet` -> process graph objective, `CodeSet` -> Lava process/network, `TestSet` -> simulation or hardware run, `EvidenceSet` -> spikes/events/metrics.
+- Step 8: Use Lava as an event-driven attention/scheduler lane for pings and tool orchestration only after local and remote smoke tests pass.
+- Step 9: Feed successful Lava experiment summaries back into the genetic coder and FABRIS pattern engine.
+- Step 10: Promote a remote Loihi lane only after CPU simulation, SSH transport, and evidence replay all pass.
+
+CONTEXT WINDOW POLICY
+- Single source of truth: `context_policy.py` reading the `AEGIS_*` environment variables.
+- Read-only inspection: `/api/context/policy`.
+- Mirror files: `.env`, `.env.template`, and `AEGIS_Launch.bat`.
+- Anti-duplication rule: do not create a second setting that conflicts with `AEGIS_OLLAMA_NUM_CTX_*` or `AEGIS_RESPONSE_BUDGET_*`.
+
+ORCHESTRATION POSTURE
+- Keep AEGIS local-first for coding, testing, debugging, and system work.
+- Use Activepieces for visual orchestration, approvals, retries, and editable workflow graphs.
+- Use `browser-use` or Skyvern only for browser and GUI automation lanes.
+- Keep any OpenAI or Codex escalation lane optional, disabled by default, and reserved for hard coding escalations.
+- Cold-archived posture reference: `prompt_layer_archive/2026-04-21_cold_layers/ORCHESTRATION_POSTURE.md`
+
+DIRECTIVE LAYER
+- `PROJECT_DIRECTIVE.txt`
+  Default build-first directive kept for fallback and automation-heavy flows.
+- `guardian_directive.txt`
+  Local guardian steering for safe runtime defaults.
+- `project_lenses/<project>.txt`
+  Optional project-specific lens file loaded only for the matching project lane.
+- Role-setting prompts are treated as configuration, not as normal research chat.
+- Normal turns no longer inject the global directive by default when no project lens is present.
+
+DOCUMENTATION SET
+- `README.md`
+  Main system overview and current posture.
+- `QUICK_START.md`
+  Startup and local-only usage guide.
+- `MANIFOLD_CHANGELOG.md`
+  Chronological record of major changes.
+- `prompt_layer_archive/2026-04-21_cold_layers/README.md`
+  Archived handoff, posture, and orchestration files removed from the hot retrieval surface.
+
+LIVE ENVIRONMENT SNAPSHOT
+- One FastAPI backend should be running on port `5005`.
+- One Ollama server should be running on port `11434`.
+- Expected loaded models during normal idle or light use:
+  - `aegis-gemma2-abliterated:2b-q8`
+  - `nomic-embed-text:latest`
+- Tiny sidecar models should load on demand and can be released after a job if RAM pressure appears.
+
+UPGRADE PATH
+- Near term
+  Run a disposable Web UI genetic-coder job, add source-snippet ingestion from crawler/GitHub search, calibrate the Aider model lane, and keep smoke tests around `/api/health`, `/api/aider/status`, and `/api/genetic-coder/run`.
+- Personal operating twin
+  Expand structured event capture into dependency misses, failed builds, duplicate services, swarm node state, edge triggers, and overnight R&D results.
+- Continuous R&D
+  Let nightly experiments write snapshots and reports first; only promote self-toolchain changes after backups and verification pass.
+- Next
+  Add objective-specific acceptance tests for the local program loop so "success" depends on real verification rather than scaffold completion.
+- Orchestration
+  Add Activepieces only when editable workflow graphs or approval gates are genuinely needed.
+- Browser lane
+  Keep `browser-use` as the default browser helper and add Skyvern only if GUI-heavy workflows outgrow the current worker.
+- Escalation lane
+  Add an optional OpenAI/Codex Responses API path later for hard coding escalations without replacing the local default path.
+- Persistence
+  Move larger-scale storage behind adapters if the workstation begins to feel pressure from local-only persistence.
+
+HONEST LIMITS
+- No committed full automated test suite yet.
+- Browser automation is intentionally scoped and should not own global system orchestration.
+- PicoClaw fallback is healthy; native PicoClaw CLI still needs hardening.
+- Aider is installed, but local model output quality is uneven. `qwen2.5:3b` is the best current small candidate; several coder-tagged small models produced repetition or malformed replies.
+- The genetic coder currently has a Python-first compile/runtime path. C, Rust, Java, D8/APK, and decompile/compile adapters are next phases.
+- The debugger adapter path is defined but not fully wired to Binary Ninja yet; current live behavior parses Python compiler/runtime output into `DebuggerSet` repair hints.
+- Intel Lava package/hardware is not installed or active yet; the local Lava-ready event plane is active so neuromorphic/event orchestration can be learned safely without destabilizing the now-fast chat path.
+- Karoo GP confirms the evolutionary/tree direction but is dataset-oriented; its GitHub page does not define our full code-generation architecture for us.
 
 ================================================================================
-STATUS: 3D FLOW ACTIVE. VRAM LOCKED. WAITING FOR DIRECTIVE.
+UPDATE LOG - 2026-04-29
 ================================================================================
+- Installed Aider into `vendor/aider_venv` and wired it to `/api/aider/*`.
+- Added the Web UI Aider terminal recorder and removed old visible program/crawl/PicoClaw-fast training buttons from the primary test panel.
+- Added `heuristic_genetic_coder.py` with set-theory state, KQML traces, SOAP-style heuristic weights, compile/runtime testing, and SQLite persistence.
+- Added `DebuggerSet` to the genetic coder path so failed compiler/runtime output can drive the next repair mutation; binary debugger tools plug into this same evidence path later.
+- Added `/api/genetic-coder/*` endpoints and a Web UI `Start Genetic Coder` button.
+- Verified a smoke job that compiled and ran a generated Python candidate and recorded one successful code try in the DB.
+- Added `SourceSnippetSet` so GitHub/web crawl snippets can become implementation evidence.
+- Expanded long-reply settings so Fabric/simple mode no longer hard-caps replies at about 180 tokens.
+- Replaced the mistaken LLaVA vision placeholder with the correct disabled Intel Lava neuromorphic roadmap and config placeholders.
+- Updated Lava direction: AEGIS can be the local control plane while another machine builds/runs the Lava/Loihi side.
+- Added `lava_event_orchestrator.py`, `/api/lava/status`, `/api/lava/events`, `/api/context/policy`, and a Web UI event recorder.
+- Wired the genetic coder to emit Lava-plane events after candidate evaluation and to loop passing candidates into Fabric wisdom.
+
 ================================================================================
-                        UPDATE LOG - 2026-04-17
+UPDATE LOG - 2026-04-20
 ================================================================================
-
-🔧 FIXES IMPLEMENTED:
-  ✅ Cloudflare Tunnel Error 1033 - Restarted tunnel, new URL generated
-  ✅ Stale Python Bytecode Cache - Cleared __pycache__ causing NameError
-  ✅ API Scanner Infinite Loop - Removed non-existent endpoint checker
-  ✅ Admin Privileges - Added UAC elevation to AEGIS_Launch.bat
-  ✅ Memory System Overhaul - Replaced vector RAG with timescale files
-
-🆕 NEW FEATURES:
-  ✅ Agentic Loop Controller - 100+ step reasoning without context drift
-  ✅ Crawler Database - 5KB chunks with R-value correlation analysis
-  ✅ Automatic Pruning - 30-day retention with regular cleanup
-  ✅ Recursive Summarization - Context preservation every 5 steps
-  ✅ Unknown Cause Detection - Find hidden correlations in data
-
-📊 PERFORMANCE:
-  • Memory search: <10ms for 1000 files
-  • Storage: <1ms per heartbeat
-  • Context retrieval: <5ms for 10 files
-  • Inference: ~50 tokens/sec (Gemma 2B on RTX 4090)
+- Reconfirmed local-only runtime posture and disabled-by-default remote lanes.
+- Added persistent project-directive capture and guardian steering.
+- Added `local_program_loop.py` for time-boxed program-building cycles.
+- Integrated PicoClaw and `browser-use` sidecars into the live tool surface.
+- Added orchestration posture policy covering Activepieces, browser lanes, and future OpenAI/Codex escalation.
+- Tuned lens injection and maintenance-router suppression for live debugging contexts.
+- Corrected the tiny sidecar to prefer the installed `qwen2.5-coder:1.5b` model before larger fallback paths.
 
 ================================================================================

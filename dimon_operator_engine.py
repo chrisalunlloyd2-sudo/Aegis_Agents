@@ -1,8 +1,9 @@
 import numpy as np
-import sqlite3
 import os
 from sklearn.decomposition import PCA
 from datetime import datetime
+
+from manifold_db import manifold_db
 
 class DIMONOperatorEngine:
     """
@@ -14,34 +15,8 @@ class DIMONOperatorEngine:
         self.pca = PCA(n_components=128) # 128-dim Reference Domain
 
     def _init_db(self):
-        """Run the physical schema if not exists"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Check if table exists, if not create it based on FastAPI schema + variance_score
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='neural_manifolds'")
-        if not cursor.fetchone():
-            cursor.execute("""
-                CREATE TABLE neural_manifolds (
-                    id INTEGER PRIMARY KEY,
-                    source_origin VARCHAR(255),
-                    ast_nodes INTEGER,
-                    structural_depth INTEGER,
-                    canonical_coords TEXT,
-                    operator_signature VARCHAR(100),
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    variance_score FLOAT
-                )
-            """)
-        else:
-            # Check if variance_score exists, if not add it
-            cursor.execute("PRAGMA table_info(neural_manifolds)")
-            columns = [info[1] for info in cursor.fetchall()]
-            if 'variance_score' not in columns:
-                cursor.execute("ALTER TABLE neural_manifolds ADD COLUMN variance_score FLOAT")
-        
-        conn.commit()
-        conn.close()
+        """Ensure the shared schema is present through ManifoldDB."""
+        manifold_db.migrate_schema()
 
     def map_to_reference(self, source_name, raw_embeddings):
         """
@@ -60,20 +35,15 @@ class DIMONOperatorEngine:
         return canonical, variance
 
     def _store_manifold(self, source, coords, variance):
-        """Store the learned manifold in the SQL database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Serialize coordinates as BLOB
-        coords_blob = coords.tobytes()
-        
-        cursor.execute("""
-            INSERT INTO neural_manifolds (source_origin, canonical_coords, variance_score)
-            VALUES (?, ?, ?)
-        """, (source, coords_blob, variance))
-        
-        conn.commit()
-        conn.close()
+        """Store the learned manifold in the unified ManifoldDB."""
+        manifold_db.persist_neural_manifold(
+            source_origin=source,
+            canonical_coords=coords,
+            operator_signature=f"REF_{variance:.4f}",
+            variance_score=variance,
+            manifold_kind="reference_domain",
+            metadata={"source": "dimon_operator_engine"},
+        )
         print(f"[DIMON] Manifold stored for '{source}'. Reference Domain active.")
 
 if __name__ == "__main__":

@@ -1,0 +1,12 @@
+Reduce each coding request to:
+- inputs
+- outputs
+- constraints
+- owned files
+- verification
+
+Build the smallest runnable slice first.
+Write code before explanation.
+Prefer complete files over fragments.
+Use project context and existing files before inventing structure.
+If context is thin, choose a standard-library baseline and make assumptions explicit in code or README.

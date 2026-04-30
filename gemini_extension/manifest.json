@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Aegis-DIMON Gemini Optimizer",
   "version": "1.0",
-  "description": "Native code-level Dark Theme and TimescaleDB sync for VIPER.",
+  "description": "Native code-level dark theme and TimescaleDB sync for AEGIS.",
   "permissions": ["storage"],
   "content_scripts": [
     {

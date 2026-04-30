@@ -20,7 +20,7 @@ if session_id not in chat_memory: chat_memory[session_id] = []
 
 However, the error log shows:
 ```
-File "C:\Users\viper\Aegis_Agents\gemini_bridge_api_fast.py", line 228, in aegis_chat
+File "<repo>\gemini_bridge_api_fast.py", line 228, in aegis_chat
     if session_id not in chat_memory: chat_memory[session_id] = []
                                         ^^^^^^^^^^^
 NameError: name 'chat_memory' is not defined

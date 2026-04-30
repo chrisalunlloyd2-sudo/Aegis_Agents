@@ -1,0 +1,19 @@
+Shape:
+- small modules
+- explicit exports
+- async only where needed
+- keep state local
+
+Files:
+- src/index.js
+- tests/*.test.js
+
+Verify:
+- node --test
+- node entry script
+
+Avoid:
+- undeclared globals
+- hidden side effects
+- callback nesting when async/await is cleaner
+- mixing CommonJS and ESM without intent

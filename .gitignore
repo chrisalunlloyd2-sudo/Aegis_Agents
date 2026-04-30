@@ -1,6 +1,8 @@
 # Environment and secrets
 .env
 *.log
+*.out
+*.err
 tunnel.log
 tunnel_new.log
 
@@ -20,10 +22,19 @@ gemini_bridge.db*
 Aegis_Memory/
 crawler_db/
 agentic_jobs/
+browser_tests/
+system_twin/
+training_runs/
+tmp_vector_cloud_smoke/
+vector_memory_db/
+removed_guidance_scripts_*/
+prompt_layer_archive/
+vendor/
 
 # IDE
 .vscode/
 .idea/
+.aider*
 *.swp
 *.swo
 
@@ -36,6 +47,7 @@ desktop.ini
 temp_url.txt
 CLOUDFLARE_URL.txt
 CLOUDFLARE.txt
+source_role_registry_snapshot.json
 
 # Large files
 *.mp4

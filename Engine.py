@@ -6,6 +6,8 @@ import sys
 import threading
 import tkinter as tk
 from tkinter import scrolledtext
+from pathlib import Path
+from context_policy import ENGINE_CONTEXT_WINDOW
 # Force High Process Priority for Windows
 if sys.platform == 'win32':
     import ctypes
@@ -16,16 +18,16 @@ os.environ["OLLAMA_VULKAN"] = "1"
 os.environ["OLLAMA_GPU_OVERHEAD"] = "1800MiB"
 
 # --- 2. CLOUD CONFIG ---
-CLOUD_URL = "https://script.google.com/macros/s/AKfycbzx7njcs04jGFnA5cD8wWW0SubYxIHU2FtsJbBlkeqv0iKuJl5t3z3EgqsaV_CS7Q95kg/exec"
+CLOUD_URL = os.getenv("AEGIS_CLOUD_URL", "").strip()
 
 class AegisMasterEngine:
     def __init__(self, model_name="qwen3"):
         self.model_name = model_name
-        self.base_path = r"C:\Users\viper\AIEngine"
+        self.base_path = os.getenv("AEGIS_ENGINE_ROOT", str(Path.home() / "AIEngine"))
         
         # 3GB VRAM PERFORMANCE SETTINGS - USER OPTIMIZED
         self.options = {
-            "num_ctx": 8192, 
+            "num_ctx": ENGINE_CONTEXT_WINDOW,
             "temperature": 0.95, 
             "num_thread": 12,
             "num_gpu": 7, # 7 Layers optimized for K4000
@@ -50,6 +52,8 @@ class AegisMasterEngine:
 
     def fetch_cloud_memory(self):
         """Feature: Timescale RAG (Retrieves recent cloud history)"""
+        if not CLOUD_URL:
+            return None
         try:
             response = requests.get(CLOUD_URL, timeout=4)
             if response.status_code == 200:
@@ -64,6 +68,8 @@ class AegisMasterEngine:
 
     def _bg_sync(self, user_text, ai_text):
         """Background thread worker for pushing data UP to Google"""
+        if not CLOUD_URL:
+            return
         try:
             payload = {"user": user_text, "ai": ai_text, "keywords": "session_update"}
             requests.post(CLOUD_URL, json=payload, timeout=3)
@@ -83,14 +89,15 @@ class AegisMasterEngine:
                 raw_results = [r.get('body', '') for r in ddgs.text(query, max_results=5)]
                 combined_raw = " ".join(raw_results)
 
-                # Send to your Cloud URL to "Buffer and Augment"
-                print(f"☁️ Offloading to Cloud AI for Filtering...")
-                payload = {"augment_request": combined_raw, "query": query}
-                response = requests.post(CLOUD_URL, json=payload, timeout=8)
-                
-                if response.status_code == 200:
-                    augmented_data = response.json().get('summary', 'Cloud failed to summarize.')
-                    return augmented_data
+                if CLOUD_URL:
+                    # Optional configured cloud URL can buffer and augment raw web snippets.
+                    print("Offloading to configured cloud filter...")
+                    payload = {"augment_request": combined_raw, "query": query}
+                    response = requests.post(CLOUD_URL, json=payload, timeout=8)
+
+                    if response.status_code == 200:
+                        augmented_data = response.json().get('summary', 'Cloud failed to summarize.')
+                        return augmented_data
                 return " ".join(raw_results[:2]) # Fallback if cloud is slow
         except Exception as e:
             return f"Augmentation Error: {str(e)}"
@@ -126,7 +133,7 @@ class AegisMasterEngine:
             
             # MAP FIX: Give Aegis a map of the folder
             if files:
-                context_data += f"\n--- AVAILABLE LOCAL FILES IN C:\\Users\\viper\\AIEngine ---\n{', '.join(files)}\n----------------------------------------------------------\n"
+                context_data += f"\n--- AVAILABLE LOCAL FILES IN {self.base_path} ---\n{', '.join(files)}\n----------------------------------------------------------\n"
             
             for f in files:
                 if f.lower() in clean_prompt.lower() and os.path.isfile(os.path.join(self.base_path, f)):
@@ -137,10 +144,10 @@ class AegisMasterEngine:
             pass
 
         system_msg = (
-            "You are AEGIS, an advanced local intelligence core operated by Chris. "
-            "Your tone is sharp, highly analytical, and strictly loyal to Chris. "
+            "You are AEGIS, an advanced local intelligence core operated by the configured user. "
+            "Your tone is sharp, highly analytical, and aligned with the configured user's goals. "
             "Keep responses highly concise and tactical to preserve VRAM. "
-            "You have full access to Viper's local file directories and past cloud memory logs. "
+            "You have access to configured local file directories and past cloud memory logs. "
             "If you do not know the answer based on the provided context, state 'Insufficient Data.' plainly."
         )
 
@@ -149,7 +156,7 @@ class AegisMasterEngine:
             response = ollama.chat(
                 model=self.model_name,
                 messages=[
-                    {"role": "system", "content": "You are AEGIS: An advanced, high-agency Tactical Intelligence. You have a sharp, witty, and loyal personality. Do not give short, robotic answers. Be detailed, use technical flair, and expand on your reasoning. You are Viper's elite digital partner. Use the context provided to give deep, multi-paragraph insights."},
+                    {"role": "system", "content": "You are AEGIS: an advanced, high-agency tactical intelligence. You have a sharp, witty, and loyal personality. Do not give short, robotic answers. Be detailed, use technical flair, and expand on your reasoning. You are the configured user's digital partner. Use the context provided to give deep, multi-paragraph insights."},
                     {"role": "user", "content": f"DATA_FEED: {context_data}\n\nCOMMAND: {clean_prompt}"}
                 ],
                 options=self.options
@@ -234,7 +241,7 @@ class AegisGUI:
         self.chat_display.config(state=tk.NORMAL)
         self.chat_display.insert(tk.END, f"[{sender}]: ", ("sender",))
         self.chat_display.insert(tk.END, f"{message}\n\n", ("message",))
-        self.chat_display.tag_config("sender", foreground="#00ff00" if sender == "System" else "#00aaff" if sender == "Viper" else "#ffaa00")
+        self.chat_display.tag_config("sender", foreground="#00ff00" if sender == "System" else "#00aaff" if sender == "User" else "#ffaa00")
         self.chat_display.tag_config("message", foreground=color)
         self.chat_display.see(tk.END)
         self.chat_display.config(state=tk.DISABLED)
@@ -245,7 +252,7 @@ class AegisGUI:
             return
 
         self.user_input.delete(0, tk.END)
-        self.append_to_chat("Viper", msg, color="#ffffff")
+        self.append_to_chat("User", msg, color="#ffffff")
         
         self.user_input.config(state=tk.DISABLED)
         self.send_button.config(state=tk.DISABLED)
