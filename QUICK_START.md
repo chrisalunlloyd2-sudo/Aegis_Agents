@@ -103,6 +103,20 @@ Notes:
 
 ## Troubleshooting
 
+### Check Fabric JSON and timeout traces
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5005/api/fabric/wisdom/status
+Invoke-RestMethod http://127.0.0.1:5005/api/runtime-traces/recent
+```
+
+### Check whether the 26B-A4B Q8 model finished downloading
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5005/api/health | ConvertTo-Json -Depth 6
+Get-Content logs\ollama_gemma4_26b_q8_pull.log -Tail 20
+```
+
 ### Port already in use
 ```bash
 python -m uvicorn gemini_bridge_api_fast:app --port 5006

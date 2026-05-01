@@ -7,8 +7,10 @@ Last refreshed: 2026-04-29
 STATUS
 - Local-only blueprint is active.
 - Main API is `gemini_bridge_api_fast.py` on port `5005`.
-- Primary model is `aegis-gemma2-abliterated:2b-q8`.
-- Chat/code discussion lane remains local-first through `aegis-gemma2-abliterated:2b-q8`.
+- Primary/code model target is `gemma4:26b-a4b-it-q8_0`; health reports whether the Ollama pull is complete.
+- Chat/code discussion lane remains local-first and falls back only when the configured local model is unavailable.
+- Fabric templates are JSON-first under `fabric_templates/` and are cached in RAM because the template set is tiny.
+- Tool calls must run in a separate tool context/window; the Web UI receives only compressed evidence summaries.
 - Aider terminal lane is installed in `vendor/aider_venv` and callable through the Web UI.
 - Aider's current local model default for the terminal lane is `qwen2.5:3b` because it answered the baseline exact-response probe more cleanly than the smaller coder-tagged models.
 - Heuristic genetic coder lane is active and passed a compile/runtime smoke test.
@@ -34,10 +36,16 @@ CORE RUNTIME
   Heuristic genetic coding lane with set-theory state, SOAP-style heuristic weights, KQML trace records, compile/runtime tests, and SQLite persistence for successful code tries.
 - `lava_event_orchestrator.py`
   Lava-ready event/control plane. Records KQML-shaped GC/SOAP/tool events in SQLite, exposes `/api/lava/*`, and feeds passing candidate lessons back into Fabric wisdom without requiring Loihi or installing Intel Lava yet.
+- `fabric_wisdom_store.py`
+  JSON Fabric template loader, weighted wisdom store, RAM cache, optional VRAM chooser proof-of-concept, vector citation bridge, and pruning surface.
+- `runtime_trace.py`
+  Timeout/error trace recorder for recurrent Web UI and local model stalls.
 
 ACTIVE LOCAL MODELS
+- `gemma4:26b-a4b-it-q8_0`
+  Target default coordinator/code model. This is a large 26B-A4B Q8 model and must finish downloading before it is available.
 - `aegis-gemma2-abliterated:2b-q8`
-  Default local coordinator and code model for the main assistant path.
+  Existing small stable local fallback.
 - `qwen2.5-coder:1.5b`
   Tiny worker model kept available for tool-sized coding, patch insertion, and verification-oriented delegation.
 - `nomic-embed-text:latest`

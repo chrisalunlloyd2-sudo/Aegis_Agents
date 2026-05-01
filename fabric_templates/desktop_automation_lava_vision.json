@@ -1,0 +1,52 @@
+{
+  "template": {
+    "name": "desktop_automation_lava_vision",
+    "schema_version": "fabric-json-v1",
+    "description": "LAVA-shaped vision and desktop automation event template.",
+    "objective": "Route visual and desktop events through LAVA-style event packets instead of screenshot-heavy prompt injection.",
+    "keywords": [
+      "automation",
+      "decode",
+      "desktop",
+      "encode",
+      "event",
+      "lava",
+      "quadro",
+      "tool",
+      "video",
+      "vision"
+    ],
+    "heuristics": [
+      "event_packets",
+      "compressed_evidence",
+      "no_raw_screenshots_in_main_context"
+    ],
+    "constraints": {
+      "screenshots_in_main_context": false,
+      "raw_video_in_prompt": false,
+      "tool_context": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI."
+    },
+    "metrics": {
+      "event_latency": "low",
+      "main_context_bytes": "minimal",
+      "automation_evidence": "present"
+    },
+    "parameters": {
+      "vision_mode": "lava_event_packets",
+      "screenshots_in_main_context": false
+    },
+    "sop": [
+      "Represent visual observations as event packets and state changes.",
+      "Keep raw video or screenshot data out of the main chat context.",
+      "Return only compressed action and evidence summaries to the Web UI."
+    ],
+    "tool_context_rule": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI.",
+    "information_hierarchy": {
+      "input": "user ask",
+      "workspace": "LAVA scratch context",
+      "fabric": "weighted wisdom template",
+      "vector_db": "citation/evidence recall",
+      "output": "natural GUI reply plus evidence summary"
+    }
+  }
+}

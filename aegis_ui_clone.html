@@ -133,14 +133,17 @@
         </div>
 
         <div class="sidebar-card">
-            <div class="sidebar-heading">Kernel Configuration</div>
-            <select id="kernel-mode" class="control-select">
-                <option value="auto">Auto: ARMv4 First</option>
-                <option value="alice">ARMv4 Cloud: 16GB Logic Core</option>
-                <option value="cloud">CLI Cloud: Gemini Agent Port</option>
-                <option value="local">Local Hands: Desktop Logic</option>
-                <option value="xeon">Xeon Swarm: (Later Upgrade)</option>
-            </select>
+            <details>
+                <summary class="sidebar-heading" style="cursor: pointer;">Advanced Kernel Override</summary>
+                <select id="kernel-mode" class="control-select">
+                    <option value="auto">Algorithm decides</option>
+                    <option value="local">Local model only</option>
+                    <option value="alice">ALICE lane</option>
+                    <option value="cloud">Cloud lane</option>
+                    <option value="xeon">Xeon lane</option>
+                </select>
+                <div style="padding-top: 8px; font-size: 11px; color: #8e918f;">Default is automatic; use only when testing one variable.</div>
+            </details>
         </div>
 
         <div class="sidebar-card">
@@ -222,6 +225,7 @@
                             <textarea id="training-prompt" class="control-input training-textarea" placeholder="Describe the build/test/research probe to run">Build a tiny Python program that creates another runnable Python program, runs that generated program, and reports pass/fail.</textarea>
                             <div class="training-control-grid">
                                 <select id="training-modifier" class="control-select">
+                                    <option value="auto">Algorithm decides from prompt</option>
                                     <option value="aider_terminal">Aider terminal evidence</option>
                                     <option value="programs_make_programs">Programs make programs</option>
                                     <option value="deployment_confidence">Deployment confidence gate</option>
@@ -1077,6 +1081,7 @@
 
         function buildTrainingModifierPrompt(basePrompt, iterationLabel = '') {
             const modifiers = {
+                auto: 'Modifier: infer the correct lane from the prompt using Fabric JSON keywords, vector citations, and evidence gates. Do not expose raw tool calls in the GUI.',
                 aider_terminal: 'Modifier: use the Aider terminal lane. Treat terminal output as the evidence source and record stdout, stderr, diffs, tests, and failures.',
                 programs_make_programs: 'Modifier: create a program whose output is another runnable program. Include a self-test harness and verify the generated program runs.',
                 ab_test: 'Modifier: run this as an A/B experiment. Compare two lenses, measure latency, code lines, research hits, pass/fail, and choose the winner by evidence.',
@@ -1087,7 +1092,7 @@
                 more_code: 'Modifier: produce more working source code and fewer explanations. Prefer runnable files over prose.',
                 d8_flat: 'Modifier: if Android or Java is involved, use Flat Java, minimal dependencies, and D8-friendly compression.'
             };
-            const selected = modifiers[trainingModifier?.value || 'aider_terminal'] || modifiers.aider_terminal;
+            const selected = modifiers[trainingModifier?.value || 'auto'] || modifiers.auto;
             return `${basePrompt.trim()}\n\n${selected}\n${iterationLabel}`.trim();
         }
 

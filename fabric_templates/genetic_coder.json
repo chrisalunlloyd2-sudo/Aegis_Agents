@@ -1,0 +1,63 @@
+{
+  "template": {
+    "name": "genetic_coder",
+    "schema_version": "fabric-json-v1",
+    "description": "A Fabric template designed for using the Genetic Coder.",
+    "objective": "Build a robust and efficient code generation process that leverages genetic algorithms to optimize code quality, performance, and maintainability.",
+    "keywords": [
+      "compile",
+      "compiler",
+      "coder",
+      "debug",
+      "fitness",
+      "genetic",
+      "karoo",
+      "minimal_cli",
+      "mutation",
+      "program",
+      "self_test",
+      "soap",
+      "test"
+    ],
+    "heuristics": [
+      "minimal_cli",
+      "self_test"
+    ],
+    "constraints": {
+      "code_quality": "high",
+      "performance": "good",
+      "maintainability": "high",
+      "tool_context": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI."
+    },
+    "metrics": {
+      "execution_time": "fast",
+      "memory_usage": "efficient",
+      "test_coverage": "high"
+    },
+    "population_size": 10,
+    "generations": 50,
+    "mutation_rate": 0.2,
+    "crossover_rate": 0.8,
+    "fitness_function": {
+      "name": "code_quality_and_performance",
+      "description": "Score candidates by tests, runtime, memory, simplicity, maintainability, and evidence completeness."
+    },
+    "sop": [
+      "Partition ask into AskSet, ConstraintSet, CodeSet, TestSet, EvidenceSet.",
+      "Ask Aider or the main model for first/last page outline only.",
+      "Generate candidate code blocks from weighted snippets and kernel citations.",
+      "Compile or parse each candidate before runtime testing.",
+      "Mutate only the failing block; do not rewrite the entire program unless fitness collapses.",
+      "Store passing candidates as vector citations and Fabric wisdom.",
+      "Stop on objective pass, inconclusive evidence, emergency stop, or timebox."
+    ],
+    "tool_context_rule": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI.",
+    "information_hierarchy": {
+      "input": "user ask",
+      "workspace": "LAVA scratch context",
+      "fabric": "weighted wisdom template",
+      "vector_db": "citation/evidence recall",
+      "output": "natural GUI reply plus evidence summary"
+    }
+  }
+}

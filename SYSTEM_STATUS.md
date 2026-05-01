@@ -232,5 +232,14 @@
 ---
 
 **Last Updated**: 2026-04-29
-**Status**: Local-first active with Aider and genetic coder baseline
+**Status**: Phase 2 Fabric JSON update active
+
+## Phase 2 Additions
+
+- Fabric templates are now JSON-first under `fabric_templates/`.
+- Fabric guidance includes the separate tool-context rule: tools run outside the main GUI context and return compressed evidence.
+- Runtime timeout/error traces are recorded in `runtime_traces`.
+- RAM working memory now keeps the last 20 replies by default.
+- The configured primary/code model is `gemma4:26b-a4b-it-q8_0`; `/api/health` reports whether Ollama has finished downloading it.
+- The 26B-A4B Q8 Ollama pull was started locally and logs to `logs/ollama_gemma4_26b_q8_pull.log`.
 **Version**: 3.8.1

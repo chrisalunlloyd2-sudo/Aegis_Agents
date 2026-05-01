@@ -6,6 +6,7 @@ import subprocess
 import json
 import asyncio
 import base64
+import hashlib
 import queue
 import re
 import sqlite3
@@ -119,11 +120,21 @@ from phase1_architecture_core import (
 from fabric_wisdom_store import (
     build_fabric_guidance_block,
     ensure_fabric_tables,
+    fabric_ram_status,
     fabric_wisdom_status,
+    load_json_templates_from_disk,
     prune_low_weight_prompts,
     record_fabric_feedback,
     record_fabric_wisdom,
+    seed_default_json_templates,
     seed_default_domains,
+    try_pin_fabric_chooser_to_vram,
+)
+from runtime_trace import (
+    ensure_runtime_trace_tables,
+    recent_runtime_traces,
+    record_runtime_trace,
+    runtime_trace_status,
 )
 optimizer = None # Lazy load DSPy
 
@@ -146,8 +157,8 @@ CONSISTENCY_DB = os.getenv("AEGIS_CONSISTENCY_DB", str(USER_HOME / "consistency.
 LOCAL_ONLY_MODE = os.getenv("AEGIS_LOCAL_ONLY", "0").strip().lower() in {"1", "true", "yes", "on"}
 LOCAL_PRIMARY_MODEL = os.getenv(
     "AEGIS_LOCAL_PRIMARY_MODEL",
-    "aegis-gemma2-abliterated:2b-q8",
-).strip() or "aegis-gemma2-abliterated:2b-q8"
+    "gemma4:26b-a4b-it-q8_0",
+).strip() or "gemma4:26b-a4b-it-q8_0"
 LOCAL_CODE_MODEL = os.getenv(
     "AEGIS_LOCAL_CODE_MODEL",
     LOCAL_PRIMARY_MODEL,
@@ -203,9 +214,9 @@ try:
 except ValueError:
     RAM_WORKING_LOG_SLOTS = 10
 try:
-    RAM_WORKING_LAST_REPLIES_SLOTS = max(1, min(int(os.getenv("AEGIS_RAM_LAST_REPLIES_SLOTS", "15")), 200))
+    RAM_WORKING_LAST_REPLIES_SLOTS = max(1, min(int(os.getenv("AEGIS_RAM_LAST_REPLIES_SLOTS", "20")), 200))
 except ValueError:
-    RAM_WORKING_LAST_REPLIES_SLOTS = 15
+    RAM_WORKING_LAST_REPLIES_SLOTS = 20
 # In Fabric-only mode, legacy guided-script paths are hard-disabled.
 if FABRIC_ONLY_MODE:
     CHAT_DIRECTIVE_CAPTURE_ENABLED = False
@@ -278,6 +289,25 @@ Stop-Process -Id $pidToStop -Force
     return parsed if isinstance(parsed, dict) else {"terminated": False, "raw": parsed}
 
 
+def ollama_model_status() -> Dict[str, Any]:
+    try:
+        with urllib.request.urlopen(f"{OLLAMA_API_BASE}/api/tags", timeout=8) as response:
+            payload = json.loads(response.read().decode("utf-8", errors="replace"))
+    except Exception as exc:
+        return {"ok": False, "error": str(exc), "base": OLLAMA_API_BASE}
+    models = payload.get("models") or []
+    names = sorted(str(item.get("name") or "") for item in models if item.get("name"))
+    wanted = [LOCAL_PRIMARY_MODEL, LOCAL_CODE_MODEL, LOCAL_TOOL_MODEL]
+    return {
+        "ok": True,
+        "base": OLLAMA_API_BASE,
+        "models": names,
+        "wanted": wanted,
+        "available": {name: name in names for name in wanted},
+        "download_note": "If a wanted model is false, Ollama has not finished or has not started that model download.",
+    }
+
+
 def build_logic_telemetry(
     request_profile: Dict[str, Any],
     *,
@@ -330,6 +360,10 @@ def append_feedback_conditioning(payload: Dict[str, Any]) -> Optional[str]:
         return str(path)
     except OSError:
         return None
+
+
+def prompt_hash(text: str) -> str:
+    return hashlib.sha256((text or "").encode("utf-8", errors="ignore")).hexdigest()[:16]
 
 
 def read_feedback_conditioning(limit: int = 200) -> List[Dict[str, Any]]:
@@ -445,7 +479,12 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_picoclaw_environment_sidecar():
     await asyncio.to_thread(ensure_fabric_tables)
+    await asyncio.to_thread(ensure_runtime_trace_tables)
     await asyncio.to_thread(seed_default_domains, "general")
+    await asyncio.to_thread(seed_default_json_templates, "general")
+    await asyncio.to_thread(load_json_templates_from_disk, "general")
+    if os.getenv("AEGIS_FABRIC_VRAM_CHOOSER_ENABLED", "1").strip().lower() in {"1", "true", "yes", "on"}:
+        await asyncio.to_thread(try_pin_fabric_chooser_to_vram, "general")
     await asyncio.to_thread(seed_knowledge_library_sources)
     if FABRIC_PRUNING_ENABLED:
         await asyncio.to_thread(prune_low_weight_prompts, "general", 0.35)
@@ -3771,6 +3810,7 @@ async def health():
         "local_primary_model": LOCAL_PRIMARY_MODEL,
         "local_code_model": LOCAL_CODE_MODEL,
         "local_tool_model": LOCAL_TOOL_MODEL,
+        "ollama_models": ollama_model_status(),
         "fabric_mode": {
             "enabled": FABRIC_ONLY_MODE,
             "pruning_enabled": FABRIC_PRUNING_ENABLED,
@@ -3781,6 +3821,7 @@ async def health():
         "context_window_policy": context_window_policy(),
         "lava_event_plane": lava_event_orchestrator.runtime_status(project="general"),
         "ram_working_memory": ram_working_memory.status() if RAM_WORKING_MEMORY_ENABLED else {"enabled": False},
+        "runtime_traces": runtime_trace_status(project="general"),
         "openai_filter_backup": {
             "enabled": OPENAI_ESCALATION_ENABLED,
             "available": openai_filter_available(),
@@ -4075,10 +4116,52 @@ async def get_fabric_wisdom_status(project: str = "general"):
         "pruning_enabled": FABRIC_PRUNING_ENABLED,
         "positive_reinforcement_enabled": FABRIC_POSITIVE_REINFORCEMENT,
         "wisdom": fabric_wisdom_status(project=normalized_project),
+        "ram": fabric_ram_status(project=normalized_project),
         "active_guidance_block": build_fabric_guidance_block(
             project=normalized_project,
             limit=6,
             prune=FABRIC_PRUNING_ENABLED,
+        ),
+    }
+
+
+@app.post("/api/fabric/templates/reload")
+async def reload_fabric_templates(project: str = "general", pin_vram: bool = True):
+    normalized_project = normalize_project(project)
+    seeded = await asyncio.to_thread(seed_default_json_templates, normalized_project)
+    loaded = await asyncio.to_thread(load_json_templates_from_disk, normalized_project)
+    vram = await asyncio.to_thread(try_pin_fabric_chooser_to_vram, normalized_project) if pin_vram else None
+    return {
+        "project": normalized_project,
+        "seeded": seeded,
+        "loaded": loaded,
+        "ram": fabric_ram_status(project=normalized_project),
+        "vram": vram,
+    }
+
+
+@app.post("/api/fabric/templates/pin-vram")
+async def pin_fabric_templates_to_vram(project: str = "general"):
+    normalized_project = normalize_project(project)
+    return await asyncio.to_thread(try_pin_fabric_chooser_to_vram, normalized_project)
+
+
+@app.get("/api/runtime-traces/status")
+async def get_runtime_trace_status(project: str = "general"):
+    normalized_project = normalize_project(project)
+    return runtime_trace_status(project=normalized_project)
+
+
+@app.get("/api/runtime-traces/recent")
+async def get_recent_runtime_traces(project: str = "general", trace_type: str = "", limit: int = 50):
+    normalized_project = normalize_project(project)
+    return {
+        "project": normalized_project,
+        "trace_type": trace_type or None,
+        "traces": recent_runtime_traces(
+            project=normalized_project,
+            trace_type=trace_type or "",
+            limit=max(1, min(int(limit), 500)),
         ),
     }
 
@@ -4537,7 +4620,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             payload = _render_dry_run_direct_reply(direct_tool_call, project=project, message=message)
             chat_memory[chat_key].append({"role": "user", "content": message})
             chat_memory[chat_key].append({"role": "assistant", "content": payload["reply"]})
-            chat_memory[chat_key] = chat_memory[chat_key][-10:]
+            chat_memory[chat_key] = chat_memory[chat_key][-40:]
             return payload
         extra_response_fields: Dict[str, Any] = {}
         if direct_tool_call.get("performative") == "research_job":
@@ -4646,7 +4729,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             )
         chat_memory[chat_key].append({"role": "user", "content": message})
         chat_memory[chat_key].append({"role": "assistant", "content": reply_text})
-        chat_memory[chat_key] = chat_memory[chat_key][-10:]
+        chat_memory[chat_key] = chat_memory[chat_key][-40:]
         background_tasks.add_task(
             postprocess_chat_turn,
             session_id=session_id,
@@ -4903,6 +4986,8 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                     "No scripted guided prompts. Use only user intent plus Fabric wisdom context.",
                     "Respond organically and directly. Do not auto-route into program loops unless explicitly requested.",
                     "Do not claim actions, tools, files, or tests unless evidence is present.",
+                    "You are replying in a Web UI HTML stream: keep display output readable and do not dump raw tool payloads.",
+                    "Tool calls must happen in a separate tool context/window; the main GUI reply receives only compressed evidence.",
                 ]
                 if fabric_guidance:
                     reduction_lines.append(fabric_guidance)
@@ -4926,6 +5011,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                         "Do not claim you used tools, searched memory, inspected files, or changed anything unless tool evidence is present in the prompt.",
                         "Do not assume code words imply execution; talking about code, AI behavior, or possible improvements is conversation unless the user explicitly asks to run, edit, create files, start jobs, or approve PicoClaw.",
                         "Do not emit planning scaffolds, execution plans, JSON, markdown fences, or tool calls unless explicitly requested.",
+                        "You are replying in a Web UI HTML stream; avoid raw tool payloads in the visible reply.",
                         "If the user asks for exactly one sentence, return exactly one sentence.",
                     ]
                 )
@@ -4995,6 +5081,8 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                     "For greetings or casual check-ins, answer conversationally without announcing your role. "
                     "For code discussion, architecture, reasoning, or AI-improvement ideas, talk through the idea instead of starting execution. "
                     "For explicit build, debug, tool, scripting, automation, or program-creation actions, be concrete and practical. "
+                    "You are replying in a Web UI HTML stream, so format for readable display and keep raw tool calls out of the visible answer. "
+                    "If tools are required, they must run in a separate tool context/window and return compressed evidence only. "
                     "Do not claim you used tools, searched memory, inspected files, or changed anything unless tool evidence is present in the prompt. "
                     "Do not emit canned readiness lines, status updates, planning scaffolds, JSON, markdown fences, or tool calls unless explicitly requested. "
                     "Do not invent formats the user did not ask for."
@@ -5136,6 +5224,21 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
 
                     async def recover_and_retry_stream(reason: str) -> bool:
                         nonlocal stream_attempt, stream_events, first_token_deadline
+                        await asyncio.to_thread(
+                            record_runtime_trace,
+                            project=project,
+                            trace_type="stream_timeout_recovery",
+                            route="local_chat",
+                            model=target_model,
+                            prompt_hash=prompt_hash(prompt),
+                            elapsed_ms=int((time.perf_counter() - request_started) * 1000),
+                            payload={
+                                "reason": reason,
+                                "attempt": stream_attempt,
+                                "response_chars": len(full_reply),
+                                "timeout_seconds": first_token_timeout_seconds,
+                            },
+                        )
                         if stream_attempt >= max_stream_attempts:
                             return False
                         try:
@@ -5513,7 +5616,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                 # Update Memory
                 chat_memory[chat_key].append({"role": "user", "content": prompt})
                 chat_memory[chat_key].append({"role": "assistant", "content": full_reply})
-                chat_memory[chat_key] = chat_memory[chat_key][-10:]
+                chat_memory[chat_key] = chat_memory[chat_key][-40:]
                 if RAM_WORKING_MEMORY_ENABLED:
                     try:
                         ram_working_memory.add_turn(
@@ -5539,6 +5642,21 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                 )
 
             except Exception as e:
+                await asyncio.to_thread(
+                    record_runtime_trace,
+                    project=project,
+                    trace_type="chat_error_or_timeout",
+                    route="local_chat",
+                    model=target_model if "target_model" in locals() else None,
+                    prompt_hash=prompt_hash(prompt if "prompt" in locals() else message),
+                    elapsed_ms=int((time.perf_counter() - request_started) * 1000),
+                    payload={
+                        "error": str(e),
+                        "requested_mode": requested_mode,
+                        "resolved_mode": resolved_mode,
+                        "dry_run": dry_run,
+                    },
+                )
                 yield json.dumps({"error": str(e)}) + "\n"
 
         return StreamingResponse(
@@ -5657,7 +5775,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
 
                 chat_memory[chat_key].append({"role": "user", "content": message})
                 chat_memory[chat_key].append({"role": "assistant", "content": clean_res})
-                chat_memory[chat_key] = chat_memory[chat_key][-10:]
+                chat_memory[chat_key] = chat_memory[chat_key][-40:]
 
                 background_tasks.add_task(
                     postprocess_chat_turn,
@@ -5705,7 +5823,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             thoughts = str(alice_result.get("thoughts", f"Project ALICE route completed with {ALICE_MODEL}.")).strip()
             chat_memory[chat_key].append({"role": "user", "content": message})
             chat_memory[chat_key].append({"role": "assistant", "content": clean_res})
-            chat_memory[chat_key] = chat_memory[chat_key][-10:]
+            chat_memory[chat_key] = chat_memory[chat_key][-40:]
             background_tasks.add_task(
                 postprocess_chat_turn,
                 session_id=session_id,
@@ -5767,7 +5885,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             thoughts = str(xeon_result.get("thoughts", "Xeon swarm task completed.")).strip()
             chat_memory[chat_key].append({"role": "user", "content": message})
             chat_memory[chat_key].append({"role": "assistant", "content": clean_res})
-            chat_memory[chat_key] = chat_memory[chat_key][-10:]
+            chat_memory[chat_key] = chat_memory[chat_key][-40:]
             background_tasks.add_task(
                 postprocess_chat_turn,
                 session_id=session_id,
@@ -5832,7 +5950,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             thoughts = str(manifold_result.get("thoughts", "Cloud manifold task completed.")).strip()
             chat_memory[chat_key].append({"role": "user", "content": message})
             chat_memory[chat_key].append({"role": "assistant", "content": clean_res})
-            chat_memory[chat_key] = chat_memory[chat_key][-10:]
+            chat_memory[chat_key] = chat_memory[chat_key][-40:]
             background_tasks.add_task(
                 postprocess_chat_turn,
                 session_id=session_id,
@@ -5912,7 +6030,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
         clean_res = finalize_reply_text(clean_res, prompt=message, project=project, source="cloud_cli")
         chat_memory[chat_key].append({"role": "user", "content": message})
         chat_memory[chat_key].append({"role": "assistant", "content": clean_res})
-        chat_memory[chat_key] = chat_memory[chat_key][-10:]
+        chat_memory[chat_key] = chat_memory[chat_key][-40:]
         background_tasks.add_task(
             postprocess_chat_turn,
             session_id=session_id,

@@ -1,0 +1,50 @@
+{
+  "template": {
+    "name": "soap_genetic_flow",
+    "schema_version": "fabric-json-v1",
+    "description": "SOAP-style data-flow optimization for the genetic coder.",
+    "objective": "Use stable optimizer heuristics to select, mutate, and distill code candidates.",
+    "keywords": [
+      "adaptive",
+      "distill",
+      "fitness",
+      "genetic",
+      "gradient",
+      "optimizer",
+      "precondition",
+      "selection",
+      "shampoo",
+      "soap"
+    ],
+    "heuristics": [
+      "conservative_lr",
+      "fitness_first",
+      "blockwise_mutation",
+      "frequent_eval"
+    ],
+    "constraints": {
+      "stability": "higher_priority_than_speed",
+      "mutation_scope": "block_local",
+      "tool_context": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI."
+    },
+    "metrics": {
+      "fitness_gain": "positive",
+      "regression_rate": "low",
+      "test_coverage": "high"
+    },
+    "sop": [
+      "Normalize candidate features: tests, static errors, runtime, memory, complexity.",
+      "Apply conservative weighted updates to mutation strategy.",
+      "Prefer block-local edits over full rewrites.",
+      "Distill successful candidate traits back to Fabric and vector memory."
+    ],
+    "tool_context_rule": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI.",
+    "information_hierarchy": {
+      "input": "user ask",
+      "workspace": "LAVA scratch context",
+      "fabric": "weighted wisdom template",
+      "vector_db": "citation/evidence recall",
+      "output": "natural GUI reply plus evidence summary"
+    }
+  }
+}

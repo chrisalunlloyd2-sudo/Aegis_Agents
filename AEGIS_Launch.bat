@@ -44,7 +44,7 @@ cd /d "%~dp0"
 REM Default to the local-only blueprint: local model + local DB + local tools
 if "%AEGIS_DEFAULT_MODE%"=="" set "AEGIS_DEFAULT_MODE=auto"
 if "%AEGIS_LOCAL_ONLY%"=="" set "AEGIS_LOCAL_ONLY=1"
-if "%AEGIS_LOCAL_PRIMARY_MODEL%"=="" set "AEGIS_LOCAL_PRIMARY_MODEL=aegis-gemma2-abliterated:2b-q8"
+if "%AEGIS_LOCAL_PRIMARY_MODEL%"=="" set "AEGIS_LOCAL_PRIMARY_MODEL=gemma4:26b-a4b-it-q8_0"
 if "%AEGIS_LOCAL_CODE_MODEL%"=="" set "AEGIS_LOCAL_CODE_MODEL=%AEGIS_LOCAL_PRIMARY_MODEL%"
 if "%AEGIS_LOCAL_TOOL_MODEL%"=="" set "AEGIS_LOCAL_TOOL_MODEL=qwen2.5-coder:1.5b"
 if "%AEGIS_LOCAL_TOOL_FALLBACK_MODEL%"=="" set "AEGIS_LOCAL_TOOL_FALLBACK_MODEL=%AEGIS_LOCAL_PRIMARY_MODEL%"

@@ -77,8 +77,10 @@ def build_aider_context(project: str) -> str:
         "",
         "Role split:",
         "- Aider is the coding agent and terminal actor.",
+        "- Aider should stay ready as the always-on coding lane whenever the user asks for implementation evidence.",
         "- AEGIS Web UI records terminal evidence, stdout/stderr, diffs, and summaries.",
         "- Fabric/RAM/DB provide context only; they do not replace Aider's code editing.",
+        "- Tool calls and terminal work happen outside the main Web UI context; return compact evidence summaries.",
         "",
     ]
     try:
@@ -218,6 +220,8 @@ class AiderTerminalLane:
         message = (
             prompt.strip()
             + "\n\n"
+            + "Always-on Aider prompt: act as the coding terminal lane for this task, "
+            + "but keep edits bounded, evidence-driven, and visible through terminal output. "
             + "Use the attached AEGIS context packet as read-only project context. "
             + "Show terminal-visible evidence for actions, diffs, tests, and failures. "
             + "Do not claim success unless terminal/test evidence supports it.\n"

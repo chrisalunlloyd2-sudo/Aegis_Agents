@@ -8,6 +8,7 @@ response path so chat replies can stream first and index second.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Dict, Optional
 
 from DIMON_CORE_DISTILLED import DIMONCore
@@ -16,9 +17,11 @@ from manifold_db import manifold_db
 from recursive_context_distiller import context_distiller
 from timescale_memory import memory as timescale_memory
 from vector_memory import vector_memory
+from fabric_wisdom_store import record_fabric_citation, record_fabric_wisdom
 
 pipeline_dimon = DIMONCore()
 TRACKED_TOOL_ACTIONS = {"create_directory", "create_file"}
+CODE_SIGNAL_RE = re.compile(r"```|\\bdef\\s+|\\bclass\\s+|\\bimport\\s+|\\bfrom\\s+\\w+\\s+import\\b|pytest|unittest|compile|pass/fail", re.IGNORECASE)
 LOW_SIGNAL_ASSISTANT_MARKERS = (
     "[alice]",
     "maintenance sop executed.",
@@ -201,7 +204,7 @@ def postprocess_chat_turn(
                 project=project,
                 metadata={"project": project, "role": "assistant", "route": route_name},
             )
-            vector_memory.store(
+            assistant_memory_id = vector_memory.store(
                 clean_reply,
                 project=project,
                 session_id=session_id,
@@ -210,6 +213,30 @@ def postprocess_chat_turn(
                 role="assistant",
                 metadata={"mode": requested_mode, "route": route_name},
             )
+            if CODE_SIGNAL_RE.search(clean_reply):
+                try:
+                    record_fabric_citation(
+                        project=project,
+                        template_name="genetic_coder",
+                        vector_memory_id=assistant_memory_id,
+                        citation_text=clean_reply[:4000],
+                        metadata={
+                            "source": "vector_memory.chat_assistant",
+                            "route": route_name,
+                            "model": target_model,
+                        },
+                    )
+                    record_fabric_wisdom(
+                        project=project,
+                        domain="code_citation",
+                        prompt_text=(
+                            "Code-related vector citation available. "
+                            "Use vector DB for full code/evidence before claiming implementation details."
+                        ),
+                        score=0.4,
+                    )
+                except Exception as fabric_exc:
+                    print(f"[WARN] Fabric citation sync skipped: {fabric_exc}")
             manifold_db.record_conversation(session_id=session_id, role="assistant", content=clean_reply)
             pipeline_dimon.process_text(
                 source_name=f"{route_name}:{project}:{session_id}:assistant",

@@ -1,0 +1,54 @@
+{
+  "template": {
+    "name": "web_ui_context_window",
+    "schema_version": "fabric-json-v1",
+    "description": "SOP for responding through the Web UI HTML window.",
+    "objective": "Keep the model aware that it is replying in a GUI stream with display and timeout limits.",
+    "keywords": [
+      "context",
+      "display",
+      "gui",
+      "html",
+      "reply",
+      "stream",
+      "timeout",
+      "web",
+      "webui",
+      "window"
+    ],
+    "heuristics": [
+      "organic_reply",
+      "stream_keepalive",
+      "separate_tool_window",
+      "evidence_summary"
+    ],
+    "constraints": {
+      "auto_start_jobs": false,
+      "raw_tool_spam": false,
+      "tool_context": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI."
+    },
+    "metrics": {
+      "first_token_latency": "low",
+      "timeout_rate": "low",
+      "gui_display_errors": "zero"
+    },
+    "parameters": {
+      "last_prompt_memory": 20,
+      "quick_prompt_always_on": true
+    },
+    "sop": [
+      "Reply naturally for conversation; do not auto-start jobs.",
+      "For tools, route work through separate tool context and stream keepalives.",
+      "Summarize evidence back to the GUI without raw tool spam.",
+      "If a task is long, estimate duration and schedule/report progress."
+    ],
+    "tool_context_rule": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI.",
+    "information_hierarchy": {
+      "input": "user ask",
+      "workspace": "LAVA scratch context",
+      "fabric": "weighted wisdom template",
+      "vector_db": "citation/evidence recall",
+      "output": "natural GUI reply plus evidence summary"
+    }
+  }
+}

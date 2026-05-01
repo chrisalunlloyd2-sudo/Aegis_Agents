@@ -33,6 +33,7 @@ AEGIS is currently built around a small number of hot-path layers:
 - `gemma_tools.py` owns request profiling, tool policy, and modifier logic.
 - `aider_terminal_lane.py` owns the Aider terminal evidence lane. Aider is installed in `vendor/aider_venv` and is launched from the Web UI so stdout/stderr/output tails are recorded instead of hidden.
 - `heuristic_genetic_coder.py` owns the new heuristic genetic coding lane. It evolves small Python candidates, compiles them, runs tests, stores KQML traces, and writes successful code tries back to SQLite.
+- `fabric_templates/` owns JSON Fabric SOP templates. Fabric guidance is now structured as weighted JSON with keywords, heuristics, constraints, metrics, SOP steps, and a separate-tool-context rule.
 - `coding_kernels.py` plus `coding_kernels/` provide compact language-specific reference packs for code generation.
 - `local_program_loop.py` owns the background research -> plan -> implement -> test -> fix cycle.
 - `timescale_memory.py`, `vector_memory.py`, and `gemini_bridge.db` hold local project memory and persistence.
@@ -43,6 +44,7 @@ The current working architecture is:
 - Aider owns the coding outline and terminal-facing pair-programming lane.
 - The Web UI records Aider terminal evidence.
 - The heuristic genetic coder fills tested implementation candidates inside a local workspace.
+- Tool calls are not supposed to live in the main GUI context. They route through a separate tool context/window and return compressed evidence to the Web UI.
 - SOAP-style heuristic weights reinforce mutation strategies that produce passing code.
 - KQML envelopes record the internal handoff and evidence messages.
 - Successful code tries are persisted in `gemini_bridge.db` under the genetic coder tables.
@@ -249,6 +251,7 @@ Later:
 - `README.md`
 - `QUICK_START.md`
 - `AEGIS_MANIFOLD_BLUEPRINT.txt`
+- `AEGIS_PHASE2_FABRIC_SOP.md`
 - `MANIFOLD_CHANGELOG.md`
 - `LAYER_SNAPSHOT_PROTOCOL.md`
 - `PERSONAL_SYSTEM_TWIN_BLUEPRINT.md`
