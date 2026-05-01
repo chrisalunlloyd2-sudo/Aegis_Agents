@@ -238,8 +238,11 @@
 
 - Fabric templates are now JSON-first under `fabric_templates/`.
 - Fabric guidance includes the separate tool-context rule: tools run outside the main GUI context and return compressed evidence.
+- Fabric now acts as a tiny performative SOP/lens selector; DB/vector stores nominal facts, evidence, citations, and measured outcomes.
+- Adaptive Fabric selection is limited to one or two active SOPs per conversation. Coding asks select coding/build/genetic/compiler SOPs; casual chat selects natural conversation.
+- Vector search defaults to lexical-first live lookup to avoid competing with Ollama generation for semantic embeddings. Semantic vectors remain stored for deeper retrieval.
+- Claude-distilled reasoning is registered as a low-weight indexed reference lane for logic/STEM/math/computing/programming, not a live model swap.
 - Runtime timeout/error traces are recorded in `runtime_traces`.
 - RAM working memory now keeps the last 20 replies by default.
-- The configured primary/code model is `gemma4:26b-a4b-it-q8_0`; `/api/health` reports whether Ollama has finished downloading it.
-- The 26B-A4B Q8 Ollama pull was started locally and logs to `logs/ollama_gemma4_26b_q8_pull.log`.
+- The 26B-A4B Q8 Ollama pull was paused during speed debugging; the live Web UI remains on the stable abliterated local model.
 **Version**: 3.8.1

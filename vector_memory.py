@@ -47,6 +47,12 @@ LEXICAL_VECTOR_SIZE = 64
 SEMANTIC_VECTOR_SIZE = 768
 SEMANTIC_MODEL = "nomic-embed-text"
 SEMANTIC_KEEP_ALIVE = os.getenv("AEGIS_OLLAMA_EMBED_KEEP_ALIVE", "2m").strip() or "2m"
+SEMANTIC_SEARCH_ENABLED = os.getenv("AEGIS_VECTOR_SEMANTIC_SEARCH_ENABLED", "0").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 LOCAL_ONLY_VECTOR = os.getenv("AEGIS_FORCE_LOCAL_VECTOR", "0").strip().lower() in {"1", "true", "yes", "on"}
 CLOUD_DSN_ENV_KEYS = (
     "AEGIS_CLOUD_VECTOR_DSN",
@@ -309,26 +315,27 @@ class LocalQdrantVectorBackend:
                 **payload,
             }
 
-        semantic_hits = self.client.search(
-            collection_name=self.semantic_collection,
-            query_vector=self.manifold_embed(clean_query),
-            query_filter=query_filter,
-            limit=limit,
-        )
-        for hit in semantic_hits:
-            payload = hit.payload or {}
-            memory_id = str(hit.id)
-            weighted_score = float(hit.score)
-            if memory_id in merged:
-                merged[memory_id]["score"] += weighted_score
-                merged[memory_id]["source"] = "hybrid"
-            else:
-                merged[memory_id] = {
-                    "memory_id": memory_id,
-                    "score": weighted_score,
-                    "source": "semantic",
-                    **payload,
-                }
+        if SEMANTIC_SEARCH_ENABLED:
+            semantic_hits = self.client.search(
+                collection_name=self.semantic_collection,
+                query_vector=self.manifold_embed(clean_query),
+                query_filter=query_filter,
+                limit=limit,
+            )
+            for hit in semantic_hits:
+                payload = hit.payload or {}
+                memory_id = str(hit.id)
+                weighted_score = float(hit.score)
+                if memory_id in merged:
+                    merged[memory_id]["score"] += weighted_score
+                    merged[memory_id]["source"] = "hybrid"
+                else:
+                    merged[memory_id] = {
+                        "memory_id": memory_id,
+                        "score": weighted_score,
+                        "source": "semantic",
+                        **payload,
+                    }
 
         results = sorted(merged.values(), key=lambda item: item["score"], reverse=True)
         return results[:limit]
@@ -940,7 +947,11 @@ class AegisVectorMemory:
             return []
 
         lexical_vector = lexical_embed(clean_query)
-        semantic_vector = self.manifold_embed(clean_query)
+        semantic_vector = (
+            self.manifold_embed(clean_query)
+            if SEMANTIC_SEARCH_ENABLED or self.cloud_backend
+            else expand_lexical_vector(lexical_vector)
+        )
 
         if self.cloud_backend:
             try:
@@ -1030,6 +1041,7 @@ class AegisVectorMemory:
             "path": str(self.storage_path),
             "semantic_backend": self.semantic_backend,
             "semantic_available": self.semantic_available,
+            "semantic_search_enabled": SEMANTIC_SEARCH_ENABLED,
             "quantization_enabled": self.quantization_enabled,
             "quantization_type": self.quantization_type if self.quantization_enabled else "disabled",
             "fallback_reason": self.fallback_reason or local_status.get("fallback_reason"),

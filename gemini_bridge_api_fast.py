@@ -4961,9 +4961,10 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                 f"Engaging local hardware ({target_model}). "
                 f"Project lane: {project}. Mapping timescale and vector context... Analyzing objective..."
             )
-            event = status_event(cot_thoughts)
-            if event:
-                yield event
+            if not simple_prompt_mode:
+                event = status_event(cot_thoughts)
+                if event:
+                    yield event
 
             context_text = ""
             if not simple_prompt_mode and not FABRIC_ONLY_MODE:
@@ -4975,11 +4976,18 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             history = trim_chat_history(chat_memory.get(chat_key, []))
             if FABRIC_ONLY_MODE:
                 history = history[-4:]
-                fabric_guidance = build_fabric_guidance_block(
-                    project=project,
-                    limit=6,
-                    prune=FABRIC_PRUNING_ENABLED,
-                )
+                if simple_prompt_mode:
+                    fabric_guidance = (
+                        "Active Fabric SOP: natural_conversation_mode. "
+                        "Fabric is performative only; nominal facts come from DB/vector only when explicitly needed."
+                    )
+                else:
+                    fabric_guidance = build_fabric_guidance_block(
+                        project=project,
+                        limit=2,
+                        prune=FABRIC_PRUNING_ENABLED,
+                        query=prompt,
+                    )
                 reduction_lines = [
                     "Fabric-only guidance mode.",
                     f"Project lane: {project}",

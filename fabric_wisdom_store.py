@@ -23,6 +23,29 @@ _TEMPLATE_VRAM_STATE: Dict[str, Any] = {
     "bytes": 0,
     "reason": "not attempted",
 }
+_QUERY_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "be",
+    "for",
+    "how",
+    "i",
+    "is",
+    "it",
+    "me",
+    "my",
+    "of",
+    "or",
+    "please",
+    "the",
+    "to",
+    "we",
+    "what",
+    "with",
+    "you",
+}
 
 
 def _conn() -> sqlite3.Connection:
@@ -171,6 +194,7 @@ def default_json_templates() -> List[Dict[str, Any]]:
                 "crossover",
                 "fitness",
                 "karoo",
+                "kazoo",
                 "soap",
                 "program",
                 "compile",
@@ -337,6 +361,38 @@ def _validate_template(payload: Dict[str, Any]) -> Dict[str, Any]:
     template["keywords"] = sorted({str(item).strip().lower() for item in keywords if str(item).strip()})
     template["tool_context_rule"] = str(template.get("tool_context_rule") or TOOL_WINDOW_RULE)
     template.setdefault("schema_version", "fabric-json-v1")
+    template.setdefault("chat_type", "task_lens")
+    template.setdefault(
+        "token_limits",
+        {
+            "prompt_budget": 512,
+            "reply_budget": 1024,
+            "tool_context_budget": 2048,
+        },
+    )
+    template.setdefault(
+        "variables",
+        {
+            "ask": "user request",
+            "constraints": "explicit limits",
+            "evidence": "pass/fail proof",
+        },
+    )
+    template.setdefault(
+        "information_hierarchy",
+        {
+            "input": "user ask",
+            "workspace": "LAVA scratch context",
+            "fabric": "performative SOP lens",
+            "db": "nominal facts, run evidence, citations, and measured outcomes",
+            "vector_db": "indexed nominal recall",
+            "output": "natural GUI reply plus compressed evidence summary",
+        },
+    )
+    template.setdefault(
+        "data_boundary",
+        "Fabric stores performative SOPs and selection lenses only; nominal data belongs in DB/vector memory.",
+    )
     return {"template": template}
 
 
@@ -411,19 +467,44 @@ def load_json_templates_from_disk(project: str = "general") -> Dict[str, Any]:
     errors = []
     for path in sorted(TEMPLATE_ROOT.glob("*.json")):
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-            result = upsert_fabric_template(project=project, payload=payload, weight=1.2, source=str(path.name))
-            loaded.append(result["template"])
+            raw_payload = json.loads(path.read_text(encoding="utf-8"))
+            payloads = raw_payload.get("templates") if isinstance(raw_payload, dict) else None
+            if isinstance(payloads, list):
+                candidates = [{"template": item} if isinstance(item, dict) and "template" not in item else item for item in payloads]
+            else:
+                candidates = [raw_payload]
+            for payload in candidates:
+                result = upsert_fabric_template(project=project, payload=payload, weight=1.2, source=str(path.name))
+                loaded.append(result["template"])
         except Exception as exc:
             errors.append({"path": str(path), "error": str(exc)})
     return {"ok": not errors, "project": project, "loaded": loaded, "errors": errors}
 
 
-def get_active_fabric_templates(project: str = "general", limit: int = 8, use_ram_cache: bool = True) -> List[Dict[str, Any]]:
+def _query_tokens(query: Optional[str]) -> set[str]:
+    if not query:
+        return set()
+    return {
+        token.lower()
+        for token in re.findall(r"[A-Za-z0-9_+#.-]+", query)
+        if len(token) > 1 and token.lower() not in _QUERY_STOPWORDS
+    }
+
+
+def get_active_fabric_templates(
+    project: str = "general",
+    limit: int = 8,
+    use_ram_cache: bool = True,
+    query: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     ensure_fabric_tables()
     clean_project = (project or "general").strip() or "general"
+    query_terms = _query_tokens(query)
     if use_ram_cache and _TEMPLATE_RAM_CACHE.get("project") == clean_project:
-        return list(_TEMPLATE_RAM_CACHE.get("items") or [])[: max(1, int(limit))]
+        cached_items = list(_TEMPLATE_RAM_CACHE.get("items") or [])
+        if query_terms:
+            return _rank_templates_for_query(cached_items, query_terms)[: max(1, int(limit))]
+        return cached_items[: max(1, int(limit))]
     with _conn() as c:
         rows = c.execute(
             """
@@ -433,7 +514,7 @@ def get_active_fabric_templates(project: str = "general", limit: int = 8, use_ra
             ORDER BY weight DESC, updated_at DESC
             LIMIT ?
             """,
-            (clean_project, max(1, int(limit))),
+            (clean_project, 256 if query_terms else max(1, int(limit))),
         ).fetchall()
     items = []
     for row in rows:
@@ -453,7 +534,33 @@ def get_active_fabric_templates(project: str = "general", limit: int = 8, use_ra
     _TEMPLATE_RAM_CACHE.update(
         {"project": clean_project, "items": items, "bytes": cache_bytes, "loaded_at": datetime.utcnow().isoformat()}
     )
+    if query_terms:
+        return _rank_templates_for_query(items, query_terms)[: max(1, int(limit))]
     return list(items)[: max(1, int(limit))]
+
+
+def _rank_templates_for_query(items: List[Dict[str, Any]], query_terms: set[str]) -> List[Dict[str, Any]]:
+    greeting_terms = {"hi", "hello", "hey", "how", "thanks", "thank", "chat", "talk"}
+    ranked = []
+    for item in items:
+        keywords = {str(keyword).lower() for keyword in item.get("keywords", [])}
+        template = (item.get("payload") or {}).get("template", {})
+        name_terms = set(str(template.get("name", "")).replace("_", " ").split())
+        sop_terms = _query_tokens(" ".join(str(line) for line in template.get("sop", [])))
+        overlap = len(query_terms & keywords) + len(query_terms & name_terms)
+        template_name = str(template.get("name") or "")
+        if query_terms & greeting_terms and template_name == "natural_conversation_mode":
+            overlap += 5
+        if "code" in query_terms or "program" in query_terms or "app" in query_terms:
+            if any(key in keywords for key in {"code", "coder", "program", "compiler", "test", "python", "java", "rust", "c"}):
+                overlap += 3
+        if "tool" in query_terms and "tool" in keywords:
+            overlap += 2
+        if overlap == 0 and query_terms & sop_terms:
+            overlap = 1
+        ranked.append((overlap, float(item.get("weight") or 1.0), str(item.get("updated_at") or ""), item))
+    ranked.sort(key=lambda row: (row[0], row[1], row[2]), reverse=True)
+    return [item for overlap, _weight, _updated_at, item in ranked if overlap > 0] or [row[3] for row in ranked]
 
 
 def try_pin_fabric_chooser_to_vram(project: str = "general") -> Dict[str, Any]:
@@ -553,33 +660,46 @@ def get_active_fabric_guidance(project: str = "general", limit: int = 6, prune: 
     return [dict(row) for row in rows]
 
 
-def build_fabric_guidance_block(project: str = "general", limit: int = 6, prune: bool = True) -> str:
+def build_fabric_guidance_block(
+    project: str = "general",
+    limit: int = 6,
+    prune: bool = True,
+    query: Optional[str] = None,
+    include_db_hints: bool = False,
+) -> str:
     prompts = get_active_fabric_guidance(project=project, limit=limit, prune=prune)
-    templates = get_active_fabric_templates(project=project, limit=limit)
+    templates = get_active_fabric_templates(project=project, limit=limit, query=query)
     if not prompts and not templates:
         return ""
-    lines = ["FABRIC WISDOM GUIDANCE (DB-weighted JSON):", f"- Tool context rule: {TOOL_WINDOW_RULE}"]
+    lines = [
+        "FABRIC SOP GUIDANCE (performative lenses; nominal facts stay in DB/vector):",
+        f"- Tool context rule: {TOOL_WINDOW_RULE}",
+        "- Data boundary: Fabric selects how to act; DB/vector supplies what is known and what was measured.",
+    ]
     for item in templates:
         template = (item.get("payload") or {}).get("template", {})
         if not template:
             continue
+        variables = template.get("variables", {})
+        token_limits = template.get("token_limits", {})
         lines.append(
-            "- JSON_TEMPLATE "
+            "- SOP "
             + json.dumps(
                 {
                     "name": template.get("name"),
-                    "objective": template.get("objective"),
-                    "keywords": template.get("keywords", [])[:16],
-                    "heuristics": template.get("heuristics", [])[:8],
-                    "constraints": template.get("constraints", {}),
-                    "metrics": template.get("metrics", {}),
-                    "sop": template.get("sop", [])[:8],
+                    "chat_type": template.get("chat_type", "task_lens"),
+                    "objective": str(template.get("objective") or "")[:180],
+                    "keywords": template.get("keywords", [])[:10],
+                    "variables": list(variables.keys())[:8] if isinstance(variables, dict) else [],
+                    "token_limits": token_limits,
+                    "sop": template.get("sop", [])[:3],
                 },
                 ensure_ascii=True,
             )
         )
-    for item in prompts:
-        lines.append(f"- [{item['domain']}] {item['prompt_text']}")
+    if include_db_hints:
+        for item in prompts:
+            lines.append(f"- DB_HINT [{item['domain']}] {item['prompt_text']}")
     return "\n".join(lines)
 
 

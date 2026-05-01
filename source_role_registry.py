@@ -267,6 +267,18 @@ SOURCE_KEYWORDS: Dict[str, List[str]] = {
         "dataset",
         "structure",
     ],
+    "claude_distilled_reference": [
+        "claude",
+        "opus",
+        "distilled",
+        "qwen",
+        "reasoning",
+        "logic",
+        "stem",
+        "math",
+        "coding",
+        "programming",
+    ],
 }
 
 
@@ -422,6 +434,13 @@ SOURCE_ROLE_RULES: Dict[str, Dict[str, Any]] = {
         "ram_eligible": True,
         "active_in_prompt": False,
         "notes": "DeepSeek distilled code metadata and bounded operational sample with tests, verify scores, and pass rates.",
+    },
+    "claude_distilled_reference": {
+        "role": "db",
+        "source_type": "quarter_weight_reasoning_reference",
+        "ram_eligible": False,
+        "active_in_prompt": False,
+        "notes": "Claude-distilled Qwen reasoning is an indexed nominal reference at 0.25 weight, prioritized for logic, STEM, math, computers, and programming.",
     },
 }
 
