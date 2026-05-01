@@ -241,8 +241,11 @@
 - Fabric now acts as a tiny performative SOP/lens selector; DB/vector stores nominal facts, evidence, citations, and measured outcomes.
 - Adaptive Fabric selection is limited to one or two active SOPs per conversation. Coding asks select coding/build/genetic/compiler SOPs; casual chat selects natural conversation.
 - Vector search defaults to lexical-first live lookup to avoid competing with Ollama generation for semantic embeddings. Semantic vectors remain stored for deeper retrieval.
+- Vector writes now also default to lexical-first on live chat turns (`AEGIS_VECTOR_SEMANTIC_WRITE_ENABLED=0`) so post-reply indexing does not wake `nomic-embed-text` and look like the model is still replying.
 - Claude-distilled reasoning is registered as a low-weight indexed reference lane for logic/STEM/math/computing/programming, not a live model swap.
 - Runtime timeout/error traces are recorded in `runtime_traces`.
 - RAM working memory now keeps the last 20 replies by default.
 - The 26B-A4B Q8 Ollama pull was paused during speed debugging; the live Web UI remains on the stable abliterated local model.
+- Added `ai_runtime_parts_sop_pack.json` with tiny Fabric SOPs for live stream completion, post-reply indexing, Aider, LAVA event recording, SOAP, research, system-variable performance tracing, and 50-phase optimization.
+- Smoke test after restart: `/api/aegis/chat` returned a visible reply in about 19.8s; Ollama CPU was 0 at 5s and 25s after completion. Aider is installed and reachable as `aider 0.86.2`.
 **Version**: 3.8.1

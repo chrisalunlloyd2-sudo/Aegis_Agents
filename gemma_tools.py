@@ -309,6 +309,14 @@ def build_request_profile(prompt: str) -> Dict[str, Any]:
         "do not stop early",
         "don't stop early",
         "finish the answer",
+        "getting cut off",
+        "cut off",
+        "reply as long",
+        "as long as it wants",
+        "longer replies",
+        "longer reply",
+        "more context for stories",
+        "continue until complete",
         "not over until",
     ]
     make_it_run_signals = [

@@ -53,6 +53,12 @@ SEMANTIC_SEARCH_ENABLED = os.getenv("AEGIS_VECTOR_SEMANTIC_SEARCH_ENABLED", "0")
     "yes",
     "on",
 }
+SEMANTIC_WRITE_ENABLED = os.getenv("AEGIS_VECTOR_SEMANTIC_WRITE_ENABLED", "0").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 LOCAL_ONLY_VECTOR = os.getenv("AEGIS_FORCE_LOCAL_VECTOR", "0").strip().lower() in {"1", "true", "yes", "on"}
 CLOUD_DSN_ENV_KEYS = (
     "AEGIS_CLOUD_VECTOR_DSN",
@@ -206,6 +212,8 @@ class LocalQdrantVectorBackend:
             return None
 
     def manifold_embed(self, text: str) -> List[float]:
+        if not SEMANTIC_WRITE_ENABLED:
+            return expand_lexical_vector(lexical_embed(text))
         semantic = self._embed_semantic(text)
         if semantic is not None:
             return semantic
@@ -853,6 +861,8 @@ class AegisVectorMemory:
             return None
 
     def manifold_embed(self, text: str) -> List[float]:
+        if not SEMANTIC_WRITE_ENABLED:
+            return expand_lexical_vector(lexical_embed(text))
         semantic = self._embed_semantic(text)
         if semantic is not None:
             return semantic
@@ -947,11 +957,10 @@ class AegisVectorMemory:
             return []
 
         lexical_vector = lexical_embed(clean_query)
-        semantic_vector = (
-            self.manifold_embed(clean_query)
-            if SEMANTIC_SEARCH_ENABLED or self.cloud_backend
-            else expand_lexical_vector(lexical_vector)
-        )
+        if SEMANTIC_SEARCH_ENABLED or self.cloud_backend:
+            semantic_vector = self._embed_semantic(clean_query) or expand_lexical_vector(lexical_vector)
+        else:
+            semantic_vector = expand_lexical_vector(lexical_vector)
 
         if self.cloud_backend:
             try:
@@ -1042,6 +1051,7 @@ class AegisVectorMemory:
             "semantic_backend": self.semantic_backend,
             "semantic_available": self.semantic_available,
             "semantic_search_enabled": SEMANTIC_SEARCH_ENABLED,
+            "semantic_write_enabled": SEMANTIC_WRITE_ENABLED,
             "quantization_enabled": self.quantization_enabled,
             "quantization_type": self.quantization_type if self.quantization_enabled else "disabled",
             "fallback_reason": self.fallback_reason or local_status.get("fallback_reason"),

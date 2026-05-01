@@ -4849,7 +4849,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                     yield text[start:start + chunk_size]
 
             def get_response_budget() -> int:
-                if simple_prompt_mode:
+                if simple_prompt_mode and not request_profile.get("wants_full_response"):
                     return RESPONSE_BUDGET_SIMPLE
                 if request_profile.get("requires_deliberate_mode"):
                     budget = RESPONSE_BUDGET_DELIBERATE
@@ -4885,7 +4885,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                     "options": {
                         "num_ctx": (
                             OLLAMA_NUM_CTX_SIMPLE
-                            if simple_prompt_mode
+                            if simple_prompt_mode and not request_profile.get("wants_full_response")
                             else (
                                 OLLAMA_NUM_CTX_LONG
                                 if (
