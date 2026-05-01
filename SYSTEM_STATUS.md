@@ -7,12 +7,14 @@
 - Aider is installed in `vendor/aider_venv` and exposed through `/api/aider/*`.
 - The Web UI records Aider terminal output separately from assistant chat.
 - The heuristic genetic coder is active through `/api/genetic-coder/*`.
+- The genetic coder now selects a code template, estimates framework/pages/target lines, and writes passing generated programs to `C:\Users\viper\LAB_OUTPUT\<project>\<task>\FINAL`.
 - Current preferred implementation path: Aider/user outline -> genetic coder -> compile/test/debugger evidence -> SQLite success memory.
 
 ### Verified evidence
 - `heuristic_genetic_coder.py` compiles.
 - `gemini_bridge_api_fast.py` compiles.
 - Smoke job `genetic-1777438289-d5b090df` produced a Python candidate that compiled, ran, printed `PASS`, reached best fitness `0.9072`, and wrote a success row to `genetic_code_successes`.
+- Direct and API smoke jobs on 2026-05-01 selected `python_local_web_app`, passed compile/runtime tests, and wrote `AEGIS_BUILD_PACKET.json` with `code_template_extrapolation_feedback` into `LAB_OUTPUT`.
 
 ### New debugger path
 - `DebuggerSet` is now part of the genetic coder state table.

@@ -40,6 +40,7 @@ from training_experiment_engine import predict_execution_likelihood
 REPO_ROOT = Path(__file__).resolve().parent
 DB_PATH = REPO_ROOT / "gemini_bridge.db"
 RUNS_DIR = REPO_ROOT / "agentic_jobs" / "genetic_coder"
+LAB_OUTPUT_DIR = Path.home() / "LAB_OUTPUT"
 
 
 def _now() -> str:
@@ -85,6 +86,71 @@ class Candidate:
     tests_pass: bool = False
     compile_pass: bool = False
     evidence: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class CodeTemplate:
+    template_id: str
+    framework: str
+    language: str
+    pages: int
+    target_lines: int
+    files: List[str]
+    rationale: str
+
+
+def _infer_code_template(objective: str, outline: str = "") -> CodeTemplate:
+    text = f"{objective} {outline}".lower()
+    wants_web = any(token in text for token in ("web", "website", "html", "browser", "dashboard", "page", "hosted locally"))
+    wants_api = any(token in text for token in ("api", "server", "endpoint", "rest", "flask", "fastapi"))
+    wants_gui = any(token in text for token in ("gui", "window", "button", "tkinter", "desktop app"))
+    wants_data = any(token in text for token in ("csv", "json", "data", "report", "parse", "analyze"))
+    wants_multi_page = any(token in text for token in ("multi page", "multipage", "pages", "dashboard", "admin"))
+    wants_large = any(token in text for token in ("full", "complete", "end to end", "production", "robust", "large"))
+
+    if wants_web or wants_api:
+        pages = 3 if wants_multi_page or wants_large else 1
+        return CodeTemplate(
+            template_id="python_local_web_app",
+            framework="python stdlib http.server + static html/css/js",
+            language="python",
+            pages=pages,
+            target_lines=220 if pages > 1 else 140,
+            files=["app.py", "templates/index.html", "static/style.css", "static/app.js", "test_app.py", "README.md"],
+            rationale="Web/API cues imply a local browser-facing app with a tiny Python server and static UI.",
+        )
+
+    if wants_gui:
+        return CodeTemplate(
+            template_id="python_tkinter_gui",
+            framework="python tkinter",
+            language="python",
+            pages=1,
+            target_lines=180 if wants_large else 120,
+            files=["app.py", "test_app.py", "README.md"],
+            rationale="GUI/window cues imply a simple desktop UI skeleton with testable pure functions.",
+        )
+
+    if wants_data:
+        return CodeTemplate(
+            template_id="python_data_cli",
+            framework="python argparse + json/csv stdlib",
+            language="python",
+            pages=1,
+            target_lines=160 if wants_large else 110,
+            files=["app.py", "sample_input.json", "test_app.py", "README.md"],
+            rationale="Data/report cues imply a CLI transformer with sample input and JSON evidence output.",
+        )
+
+    return CodeTemplate(
+        template_id="python_cli_evidence_app",
+        framework="python argparse + json stdlib",
+        language="python",
+        pages=1,
+        target_lines=120 if wants_large else 90,
+        files=["app.py", "test_app.py", "README.md"],
+        rationale="No stronger framework cue was found, so the safest first candidate is a runnable CLI app.",
+    )
 
 
 class SoapHeuristicState:
@@ -291,6 +357,7 @@ class HeuristicGeneticCoderJob:
         self.language = (language or "python").lower().strip()
         self.outline = outline.strip()
         self.snippets = snippets or []
+        self.template = _infer_code_template(self.objective, self.outline)
         self.max_generations = _safe_int(max_generations, 8, 1, 200)
         self.population = _safe_int(population, 4, 1, 50)
         self.timebox_minutes = _safe_int(timebox_minutes, 20, 1, 24 * 60)
@@ -300,7 +367,7 @@ class HeuristicGeneticCoderJob:
         self.error = ""
         self.kqml_trace: List[Dict[str, Any]] = []
         self.soap = SoapHeuristicState()
-        root = Path(workspace).resolve() if workspace else RUNS_DIR / self.project / _slug(self.objective, self.job_id)
+        root = Path(workspace).resolve() if workspace else LAB_OUTPUT_DIR / self.project / _slug(self.objective, self.job_id)
         self.workspace = root
         self.best: Optional[Candidate] = None
         self.candidates: List[Candidate] = []
@@ -318,6 +385,7 @@ class HeuristicGeneticCoderJob:
             "language": self.language,
             "outline": self.outline,
             "snippets": self.snippets[-20:],
+            "selected_template": asdict(self.template),
             "max_generations": self.max_generations,
             "population": self.population,
             "timebox_minutes": self.timebox_minutes,
@@ -365,6 +433,9 @@ class HeuristicGeneticCoderJob:
                 "objective": self.objective,
                 "outline": self.outline,
                 "language": self.language,
+                "inferred_framework": self.template.framework,
+                "estimated_pages": self.template.pages,
+                "estimated_target_lines": self.template.target_lines,
             },
             "SourceSnippetSet": [
                 {
@@ -376,14 +447,19 @@ class HeuristicGeneticCoderJob:
             ],
             "ConstraintSet": {
                 "workspace": str(self.workspace),
+                "lab_output_root": str(LAB_OUTPUT_DIR),
                 "no_network": True,
                 "local_execution_only": True,
                 "timebox_minutes": self.timebox_minutes,
                 "stop_on_success": True,
+                "selected_template": asdict(self.template),
             },
             "CodeSet": {
                 "candidate_count": len(self.candidates),
                 "best_candidate": self.best.candidate_id if self.best else None,
+                "template_id": self.template.template_id,
+                "framework": self.template.framework,
+                "expected_files": self.template.files,
             },
             "TestSet": {
                 "compile": "python -m py_compile app.py test_app.py",
@@ -400,7 +476,26 @@ class HeuristicGeneticCoderJob:
                 "best_fitness": self.best.fitness if self.best else 0.0,
                 "tests_pass": bool(self.best and self.best.tests_pass),
                 "latest_status": self.status,
+                "ai_feedback_packet": self._ai_feedback_packet(),
             },
+        }
+
+    def _ai_feedback_packet(self, candidate: Optional[Candidate] = None, final_output_dir: str = "") -> Dict[str, Any]:
+        active = candidate or self.best
+        evidence = active.evidence if active else {}
+        return {
+            "performative": "tell",
+            "receiver": "aegis-ai",
+            "purpose": "code_template_extrapolation_feedback",
+            "template_id": self.template.template_id,
+            "framework": self.template.framework,
+            "estimated_pages": self.template.pages,
+            "estimated_target_lines": self.template.target_lines,
+            "workspace": str(self.workspace),
+            "best_candidate": active.candidate_id if active else "",
+            "tests_pass": bool(active and active.tests_pass),
+            "fitness": active.fitness if active else 0.0,
+            "final_output_dir": str(final_output_dir or evidence.get("final_output_dir") or ""),
         }
 
     def _persist(self) -> None:
@@ -427,7 +522,7 @@ class HeuristicGeneticCoderJob:
         )
 
     def _initial_candidate(self) -> Candidate:
-        files = _render_python_project(self.objective, self.outline, ["minimal_cli", "self_test"], self.snippets)
+        files = _render_python_project(self.objective, self.outline, ["minimal_cli", "self_test"], self.snippets, self.template)
         return Candidate(
             candidate_id=f"cand-{uuid.uuid4().hex[:8]}",
             generation=0,
@@ -442,7 +537,7 @@ class HeuristicGeneticCoderJob:
         if repair_hints:
             heuristics.extend(["clear_errors", "self_test"])
         all_heuristics = sorted(set(parent.heuristics + heuristics))
-        files = _render_python_project(self.objective, self.outline, all_heuristics, self.snippets)
+        files = _render_python_project(self.objective, self.outline, all_heuristics, self.snippets, self.template)
         if "edge_cases" in heuristics:
             files["test_app.py"] = files["test_app.py"].replace(
                 "assert isinstance(result, dict)",
@@ -502,6 +597,7 @@ class HeuristicGeneticCoderJob:
             "objective": self.objective,
             "language": self.language,
             "candidate_dir": str(candidate_dir),
+            "selected_template": asdict(self.template),
             "compile": compile_result,
             "runtime": runtime_result,
             "debugger": debugger_result,
@@ -513,8 +609,34 @@ class HeuristicGeneticCoderJob:
                 "note": "Binary debugger/decompiler adapters belong in this fitness loop after installation/licensing; their traces should propose bounded fixes before recompile.",
             },
         }
+        if candidate.tests_pass:
+            final_output_dir = str(self._publish_candidate(candidate))
+            candidate.evidence["final_output_dir"] = final_output_dir
+            candidate.evidence["ai_feedback_packet"] = self._ai_feedback_packet(candidate, final_output_dir)
         self.store.record_attempt(job_id=self.job_id, project=self.project, candidate=candidate)
         return candidate
+
+    def _publish_candidate(self, candidate: Candidate) -> Path:
+        final_dir = self.workspace / "FINAL"
+        final_dir.mkdir(parents=True, exist_ok=True)
+        for rel, text in candidate.files.items():
+            path = final_dir / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+        feedback_packet = self._ai_feedback_packet(candidate, str(final_dir))
+        _write_json(
+            final_dir / "AEGIS_BUILD_PACKET.json",
+            {
+                "job_id": self.job_id,
+                "candidate_id": candidate.candidate_id,
+                "objective": self.objective,
+                "template": asdict(self.template),
+                "fitness": candidate.fitness,
+                "tests_pass": candidate.tests_pass,
+                "ai_feedback_packet": feedback_packet,
+            },
+        )
+        return final_dir
 
     def run(self) -> None:
         deadline = time.time() + self.timebox_minutes * 60
@@ -531,6 +653,8 @@ class HeuristicGeneticCoderJob:
                 "job_id": self.job_id,
                 "objective": self.objective,
                 "language": self.language,
+                "selected_template": asdict(self.template),
+                "ai_feedback_packet": self._ai_feedback_packet(),
                 "set_table": self._set_table(),
             },
             performative="achieve",
@@ -775,9 +899,17 @@ def _build_debugger_evidence(
     }
 
 
-def _render_python_project(objective: str, outline: str, heuristics: List[str], snippets: Optional[List[Dict[str, Any]]] = None) -> Dict[str, str]:
+def _render_python_project(
+    objective: str,
+    outline: str,
+    heuristics: List[str],
+    snippets: Optional[List[Dict[str, Any]]] = None,
+    template: Optional[CodeTemplate] = None,
+) -> Dict[str, str]:
+    template = template or _infer_code_template(objective, outline)
     objective_literal = json.dumps(objective, ensure_ascii=True)
     outline_literal = json.dumps(outline, ensure_ascii=True)
+    template_literal = json.dumps(asdict(template), ensure_ascii=True)
     snippet_lines = []
     for item in (snippets or [])[-8:]:
         title = str(item.get("title") or item.get("url") or "snippet").strip()
@@ -787,6 +919,294 @@ def _render_python_project(objective: str, outline: str, heuristics: List[str], 
     snippets_literal = json.dumps(snippet_lines, ensure_ascii=True)
     include_json = "json_report" in heuristics
     include_hook = "decompile_compile_hook" in heuristics
+    if template.template_id == "python_local_web_app":
+        index = f'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LAB_OUTPUT App</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <p class="eyebrow">AEGIS LAB_OUTPUT</p>
+    <h1>{objective}</h1>
+    <section id="evidence"></section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
+'''
+        style = '''body { margin: 0; font-family: Segoe UI, sans-serif; background: #0f172a; color: #e2e8f0; }
+.shell { max-width: 860px; margin: 8vh auto; padding: 32px; border: 1px solid #334155; border-radius: 24px; background: #111827; }
+.eyebrow { color: #38bdf8; letter-spacing: .16em; font-size: 12px; text-transform: uppercase; }
+h1 { line-height: 1.1; }
+#evidence { margin-top: 24px; padding: 18px; background: #020617; border-radius: 16px; white-space: pre-wrap; }
+'''
+        script = f'''const evidence = {json.dumps({
+            "ok": True,
+            "objective": objective,
+            "framework": template.framework,
+            "estimated_pages": template.pages,
+            "estimated_target_lines": template.target_lines,
+            "steps": ["serve local page", "render objective", "return EvidenceSet"]
+        }, ensure_ascii=True, indent=2)};
+document.getElementById("evidence").textContent = JSON.stringify(evidence, null, 2);
+'''
+        app = f'''from __future__ import annotations
+
+import json
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any, Dict
+
+
+OBJECTIVE = {objective_literal}
+TEMPLATE = {template_literal}
+ROOT = Path(__file__).resolve().parent
+
+
+def evidence_set() -> Dict[str, Any]:
+    return {{"ok": True, "objective": OBJECTIVE, "template": TEMPLATE, "served_files": ["templates/index.html", "static/style.css", "static/app.js"]}}
+
+
+def main(port: int = 8765) -> int:
+    print(json.dumps(evidence_set(), indent=2))
+    print(f"Open http://127.0.0.1:{{port}}")
+    handler = partial(SimpleHTTPRequestHandler, directory=str(ROOT))
+    server = ThreadingHTTPServer(("127.0.0.1", port), handler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        return 0
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+'''
+        test = '''from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import app
+
+
+def test_evidence_shape() -> None:
+    payload = app.evidence_set()
+    assert payload["ok"] is True
+    assert payload["template"]["template_id"] == "python_local_web_app"
+
+
+def test_static_files_exist() -> None:
+    root = Path(__file__).resolve().parent
+    assert (root / "templates" / "index.html").read_text(encoding="utf-8")
+    assert "AEGIS LAB_OUTPUT" in (root / "templates" / "index.html").read_text(encoding="utf-8")
+    assert (root / "static" / "app.js").read_text(encoding="utf-8")
+
+
+if __name__ == "__main__":
+    test_evidence_shape()
+    test_static_files_exist()
+    print("PASS")
+'''
+        readme = f"""# LAB_OUTPUT Web Candidate
+
+Objective: {objective}
+
+Framework: {template.framework}
+Estimated pages: {template.pages}
+Estimated target lines: {template.target_lines}
+
+Run tests:
+
+```powershell
+python -m py_compile app.py test_app.py
+python test_app.py
+```
+
+Run app:
+
+```powershell
+python app.py
+```
+"""
+        return {
+            "app.py": app,
+            "templates/index.html": index,
+            "static/style.css": style,
+            "static/app.js": script,
+            "test_app.py": test,
+            "README.md": readme,
+        }
+
+    if template.template_id == "python_data_cli":
+        sample = json.dumps(
+            {
+                "objective": objective,
+                "items": [
+                    {"name": "alpha", "value": 1},
+                    {"name": "beta", "value": 2},
+                ],
+            },
+            ensure_ascii=True,
+            indent=2,
+        )
+        app = f'''from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import Any, Dict
+
+
+OBJECTIVE = {objective_literal}
+TEMPLATE = {template_literal}
+
+
+def load_input(path: str = "sample_input.json") -> Dict[str, Any]:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def build_evidence(data: Dict[str, Any]) -> Dict[str, Any]:
+    items = data.get("items") if isinstance(data, dict) else []
+    return {{
+        "ok": True,
+        "objective": OBJECTIVE,
+        "template": TEMPLATE,
+        "item_count": len(items) if isinstance(items, list) else 0,
+        "keys": sorted(data.keys()) if isinstance(data, dict) else [],
+    }}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="LAB_OUTPUT data CLI candidate")
+    parser.add_argument("--input", default="sample_input.json")
+    args = parser.parse_args()
+    print(json.dumps(build_evidence(load_input(args.input)), indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+'''
+        test = '''from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import app
+
+
+def test_sample_input_exists() -> None:
+    assert Path("sample_input.json").exists()
+
+
+def test_build_evidence() -> None:
+    payload = app.build_evidence(app.load_input())
+    assert payload["ok"] is True
+    assert payload["template"]["template_id"] == "python_data_cli"
+    assert payload["item_count"] == 2
+
+
+def test_cli_outputs_json() -> None:
+    completed = subprocess.run([sys.executable, "app.py"], capture_output=True, text=True, timeout=10)
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(completed.stdout)["ok"] is True
+
+
+if __name__ == "__main__":
+    test_sample_input_exists()
+    test_build_evidence()
+    test_cli_outputs_json()
+    print("PASS")
+'''
+        readme = f"""# LAB_OUTPUT Data CLI Candidate
+
+Objective: {objective}
+
+Framework: {template.framework}
+Estimated target lines: {template.target_lines}
+
+Run:
+
+```powershell
+python test_app.py
+python app.py --input sample_input.json
+```
+"""
+        return {"app.py": app, "sample_input.json": sample, "test_app.py": test, "README.md": readme}
+
+    if template.template_id == "python_tkinter_gui":
+        app = f'''from __future__ import annotations
+
+import json
+from typing import Any, Dict
+
+
+OBJECTIVE = {objective_literal}
+TEMPLATE = {template_literal}
+
+
+def build_evidence() -> Dict[str, Any]:
+    return {{"ok": True, "objective": OBJECTIVE, "template": TEMPLATE, "ui": "tkinter"}}
+
+
+def main() -> int:
+    import tkinter as tk
+
+    root = tk.Tk()
+    root.title("LAB_OUTPUT GUI Candidate")
+    frame = tk.Frame(root, padx=18, pady=18)
+    frame.pack(fill="both", expand=True)
+    tk.Label(frame, text=OBJECTIVE, wraplength=520, justify="left").pack(anchor="w")
+    text = tk.Text(frame, height=10, width=72)
+    text.pack(fill="both", expand=True, pady=(12, 0))
+    text.insert("1.0", json.dumps(build_evidence(), indent=2))
+    root.mainloop()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+'''
+        test = '''from __future__ import annotations
+
+import app
+
+
+def test_build_evidence() -> None:
+    payload = app.build_evidence()
+    assert payload["ok"] is True
+    assert payload["template"]["template_id"] == "python_tkinter_gui"
+    assert payload["ui"] == "tkinter"
+
+
+if __name__ == "__main__":
+    test_build_evidence()
+    print("PASS")
+'''
+        readme = f"""# LAB_OUTPUT Tkinter GUI Candidate
+
+Objective: {objective}
+
+Framework: {template.framework}
+Estimated target lines: {template.target_lines}
+
+Run:
+
+```powershell
+python test_app.py
+python app.py
+```
+"""
+        return {"app.py": app, "test_app.py": test, "README.md": readme}
+
     app = f'''from __future__ import annotations
 
 import json
@@ -796,6 +1216,7 @@ from typing import Any, Dict, List
 OBJECTIVE = {objective_literal}
 OUTLINE = {outline_literal}
 SOURCE_SNIPPETS = {snippets_literal}
+TEMPLATE = {template_literal}
 
 
 def build_steps(objective: str = OBJECTIVE, outline: str = OUTLINE) -> List[str]:
@@ -814,7 +1235,7 @@ def build_steps(objective: str = OBJECTIVE, outline: str = OUTLINE) -> List[str]
 
 def solve(objective: str = OBJECTIVE) -> Dict[str, Any]:
     steps = build_steps(objective)
-    result = {{"ok": True, "objective": objective, "steps": steps}}
+    result = {{"ok": True, "objective": objective, "steps": steps, "template": TEMPLATE}}
     if {str(include_json)}:
         result["report_format"] = "json"
     if {str(include_hook)}:

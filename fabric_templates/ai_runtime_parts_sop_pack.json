@@ -66,6 +66,19 @@
       "data_boundary": "Fabric stores the SOAP SOP; DB stores samples, scores, and pass/fail traces."
     },
     {
+      "name": "code_template_extrapolation_lab_output",
+      "schema_version": "fabric-json-v1",
+      "description": "When code is requested, infer a concrete code template before mutation.",
+      "objective": "Let SOAP and the genetic coder pull a code template, extrapolate framework, pages, target line count, and expected files, then publish passing code into LAB_OUTPUT.",
+      "keywords": ["code template", "lab_output", "LAB_OUTPUT", "framework", "pages", "lines", "extrapolate", "complete program", "genetic coder", "soap", "write code", "build app"],
+      "heuristics": ["infer_framework_first", "estimate_size", "publish_passing_candidate", "feedback_packet_to_ai"],
+      "constraints": {"final_output_root": "C:\\Users\\viper\\LAB_OUTPUT", "claim_without_tests": false, "skip_feedback_packet": false},
+      "metrics": {"selected_template": "tracked", "estimated_pages": "tracked", "estimated_target_lines": "tracked", "final_output_dir": "tracked"},
+      "sop": ["Extract code intent from the AI/user request.", "Select the closest runnable template.", "Estimate framework, pages, target lines, and file list.", "Run compile/runtime verification.", "Copy the passing candidate to LAB_OUTPUT/<project>/<task>/FINAL.", "Return the code_template_extrapolation_feedback packet to the AI."],
+      "tool_context_rule": "Template selection and compile/test evidence stay in the tool lane; the AI receives only the compact feedback packet.",
+      "data_boundary": "Fabric defines the SOP; LAB_OUTPUT stores generated code; SQLite stores pass/fail evidence."
+    },
+    {
       "name": "research_success_implementation",
       "schema_version": "fabric-json-v1",
       "description": "Research lane for source-grounded implementation work.",
