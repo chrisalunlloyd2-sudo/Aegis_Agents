@@ -78,6 +78,40 @@
         .prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
         .prompt-pill { padding: 7px 12px; border-radius: 999px; background: rgba(168,199,250,0.08); border: 1px solid rgba(168,199,250,0.15); color: var(--muted); font-size: 12px; cursor: pointer; }
         .prompt-pill:hover { color: var(--accent); }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        .top-nav { padding: 12px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(19, 19, 20, 0.72); display: grid; grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.4fr) auto; gap: 12px; align-items: center; }
+        .breadcrumb { color: var(--muted); font-size: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .breadcrumb strong { color: var(--accent); }
+        .nav-menu { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-link { color: var(--muted); border: 1px solid rgba(168,199,250,0.12); background: rgba(168,199,250,0.05); border-radius: 999px; padding: 7px 11px; cursor: pointer; font-size: 12px; }
+        .nav-link:hover, .nav-link.active { color: var(--accent); border-color: rgba(168,199,250,0.32); background: rgba(168,199,250,0.12); }
+        .utility-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+        .utility-bar .control-input, .utility-bar .control-select { width: auto; min-width: 120px; padding: 8px 10px; font-size: 12px; }
+        #global-search { min-width: 220px; }
+        .progress-shell { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: transparent; overflow: hidden; }
+        #global-progress { height: 100%; width: 0%; background: linear-gradient(90deg, #7bd389, #a8c7fa, #f8c67a); transition: width 0.24s ease; opacity: 0; }
+        #global-progress.active { opacity: 1; }
+        .notification-tray { position: fixed; right: 18px; bottom: 18px; z-index: 20; display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100vw - 36px)); pointer-events: none; }
+        .toast { pointer-events: auto; background: rgba(30,31,32,0.96); border: 1px solid rgba(168,199,250,0.18); border-left: 4px solid var(--accent); color: var(--text); border-radius: 14px; padding: 10px 12px; box-shadow: 0 18px 40px rgba(0,0,0,0.35); font-size: 13px; }
+        .toast.warn { border-left-color: #f8c67a; }
+        .toast.ok { border-left-color: var(--success); }
+        .toast.error { border-left-color: #ff8f8f; }
+        .form-error { color: #ffb0b0; font-size: 12px; min-height: 16px; margin-top: 6px; }
+        .view-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+        .view-toolbar .control-input, .view-toolbar .control-select { width: auto; min-width: 130px; padding: 8px 10px; font-size: 12px; }
+        .dashboard-card[draggable="true"] { cursor: grab; }
+        .dashboard-card.drag-source { opacity: 0.42; outline: 1px dashed rgba(168,199,250,0.45); }
+        .dashboard-card.drop-target { box-shadow: 0 0 0 2px rgba(168,199,250,0.45); }
+        .compact-view .list-item { padding: 7px 9px; font-size: 12px; line-height: 1.35; }
+        .compact-view .metric { padding: 8px; }
+        .grid-view #training-run-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .offline-banner { display: none; padding: 8px 24px; background: rgba(248,198,122,0.10); border-bottom: 1px solid rgba(248,198,122,0.18); color: #f8c67a; font-size: 12px; }
+        .offline .offline-banner { display: block; }
+        .help-panel { margin-top: 10px; border: 1px solid rgba(168,199,250,0.12); border-radius: 14px; padding: 10px 12px; background: rgba(168,199,250,0.05); }
+        .help-panel summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+        .help-panel ol { margin: 10px 0 0 18px; padding: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .permission-readonly { opacity: 0.58; }
+        .language-note { color: var(--muted); font-size: 11px; margin-top: 6px; }
 
         .training-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr); gap: 12px; }
         .training-textarea { min-height: 78px; resize: vertical; font-family: inherit; line-height: 1.45; }
@@ -96,7 +130,7 @@
         .terminal-output .muted { color: var(--muted); }
         .training-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
         @media (max-width: 1300px) { .training-layout, .training-control-grid, .training-kpi { grid-template-columns: 1fr; } }
-        @media (max-width: 1100px) { body { flex-direction: column; overflow: auto; } #sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line); } #dashboard-panel { max-height: none; } .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; } #chat-container, #input-area { padding-left: 18px; padding-right: 18px; } }
+        @media (max-width: 1100px) { body { flex-direction: column; overflow: auto; } #sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line); } .top-nav { grid-template-columns: 1fr; } .utility-bar { justify-content: flex-start; } #dashboard-panel { max-height: none; } .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; } #chat-container, #input-area { padding-left: 18px; padding-right: 18px; } .grid-view #training-run-list { grid-template-columns: 1fr; } }
 
         .typing-indicator { display: flex; align-items: center; gap: 5px; padding: 2px 4px; height: 20px; }
         .typing-indicator span { width: 6px; height: 6px; background-color: var(--accent); border-radius: 50%; animation: typingBlink 1.4s infinite both; }
@@ -180,14 +214,48 @@
     </div>
 
     <div id="main-view">
+        <div class="progress-shell" aria-hidden="true"><div id="global-progress"></div></div>
         <div id="header">
             <div class="brand">AEGIS <span>Project Dashboard</span> <div id="status-dot"></div></div>
             <div class="project-pill" id="active-project-pill">general</div>
         </div>
+        <div class="offline-banner" id="offline-banner">Offline mode active: showing cached dashboard data and local training metrics until the API reconnects.</div>
+        <nav class="top-nav" aria-label="AEGIS dashboard navigation">
+            <div class="breadcrumb" id="breadcrumb-trail">
+                <span>AEGIS</span><span>/</span><strong id="breadcrumb-project">general</strong><span>/</span><span id="breadcrumb-section">Dashboard</span>
+            </div>
+            <div class="nav-menu" role="menubar" aria-label="Dashboard sections">
+                <button class="nav-link active" type="button" data-section-target="dashboard-panel">Dashboard</button>
+                <button class="nav-link" type="button" data-section-target="training-card">Testing</button>
+                <button class="nav-link" type="button" data-section-target="aider-terminal-output">Aider</button>
+                <button class="nav-link" type="button" data-section-target="lava-event-output">LAVA</button>
+                <button class="nav-link" type="button" data-section-target="chat-container">Chat</button>
+            </div>
+            <div class="utility-bar">
+                <label class="sr-only" for="global-search">Search dashboard</label>
+                <input id="global-search" class="control-input" type="search" list="global-search-suggestions" placeholder="Search runs, SOPs, memory..." autocomplete="off">
+                <datalist id="global-search-suggestions"></datalist>
+                <select id="view-mode" class="control-select" title="Dashboard view">
+                    <option value="list">List view</option>
+                    <option value="grid">Grid view</option>
+                    <option value="compact">Compact view</option>
+                </select>
+                <select id="role-select" class="control-select" title="User role">
+                    <option value="operator">Operator</option>
+                    <option value="reviewer">Reviewer</option>
+                    <option value="viewer">Viewer</option>
+                </select>
+                <select id="language-select" class="control-select" title="Language">
+                    <option value="en">EN</option>
+                    <option value="es">ES</option>
+                    <option value="fr">FR</option>
+                </select>
+            </div>
+        </nav>
 
         <div id="dashboard-panel">
             <div class="dashboard-grid">
-                <div class="dashboard-card span-4">
+                <div class="dashboard-card span-4" data-section="snapshot" draggable="true">
                     <div class="sidebar-heading">Project Snapshot</div>
                     <div class="list-item" style="margin-bottom: 12px;">
                         <strong id="project-snapshot-title">general</strong>
@@ -218,7 +286,7 @@
                 </div>
 
 
-                <div class="dashboard-card span-8">
+                <div class="dashboard-card span-8" id="training-card" data-section="training" draggable="true">
                     <div class="sidebar-heading">Testing & Training</div>
                     <div class="training-layout">
                         <div>
@@ -238,6 +306,7 @@
                                 <input id="training-hours" class="control-input" type="number" min="1" max="24" value="8" title="Program-loop or crawl hours">
                                 <input id="training-cpu" class="control-input" type="number" min="15" max="60" value="30" title="CPU target">
                             </div>
+                            <div id="training-validation" class="form-error" role="status" aria-live="polite"></div>
                             <div class="training-toolbar">
                                 <button class="panel-btn primary" id="run-training-prompt-btn">Run Prompt Test</button>
                                 <button class="panel-btn primary" id="start-aider-terminal-btn">Start Aider Terminal</button>
@@ -245,6 +314,22 @@
                                 <button class="panel-btn" id="stop-aider-terminal-btn">Stop Aider</button>
                                 <button class="panel-btn" id="refresh-aider-terminal-btn">Refresh Aider</button>
                                 <button class="panel-btn" id="refresh-training-btn">Refresh Metrics</button>
+                            </div>
+                            <div class="view-toolbar">
+                                <select id="training-filter" class="control-select" title="Filter training runs">
+                                    <option value="all">All runs</option>
+                                    <option value="pass">Passing only</option>
+                                    <option value="fail">Failures only</option>
+                                    <option value="code">Code-heavy</option>
+                                    <option value="research">Research/tool-heavy</option>
+                                </select>
+                                <select id="training-sort" class="control-select" title="Sort training runs">
+                                    <option value="newest">Newest first</option>
+                                    <option value="slowest">Slowest first</option>
+                                    <option value="loc">Most LOC</option>
+                                    <option value="pass">Pass/fail</option>
+                                </select>
+                                <button class="panel-btn" id="export-training-btn" type="button">Export TXT</button>
                             </div>
                             <div id="training-status" class="training-status">Ready. Aider is the coding lane; Web UI records terminal evidence.</div>
                         </div>
@@ -303,37 +388,45 @@
                     <div id="training-run-list" class="list" style="margin-top: 10px;">
                         <div class="empty-state">No testing or training runs recorded yet.</div>
                     </div>
+                    <details class="help-panel">
+                        <summary>User training resources</summary>
+                        <ol>
+                            <li>Use chat for natural discussion; use Testing when you want measured prompt or build loops.</li>
+                            <li>Use Genetic Coder for code candidates that must compile and land in LAB_OUTPUT.</li>
+                            <li>Use filters, sort, and search to drill into errors, latency, pass rate, and code output over time.</li>
+                        </ol>
+                    </details>
                 </div>
 
-                <div class="dashboard-card span-4">
+                <div class="dashboard-card span-4" data-section="reasoning" draggable="true">
                     <div class="sidebar-heading">Recent Reasoning Notes</div>
                     <div id="reasoning-note-list" class="list">
                         <div class="empty-state">No project reasoning notes yet.</div>
                     </div>
                 </div>
 
-                <div class="dashboard-card span-4">
+                <div class="dashboard-card span-4" data-section="vector" draggable="true">
                     <div class="sidebar-heading">Recent Vector Memories</div>
                     <div id="vector-memory-list" class="list">
                         <div class="empty-state">No project vector memories yet.</div>
                     </div>
                 </div>
 
-                <div class="dashboard-card span-4">
+                <div class="dashboard-card span-4" data-section="tools" draggable="true">
                     <div class="sidebar-heading">SOP: Tools</div>
                     <div id="sop-tools" class="list">
                         <div class="empty-state">Loading tool SOPs...</div>
                     </div>
                 </div>
 
-                <div class="dashboard-card span-4">
+                <div class="dashboard-card span-4" data-section="coding" draggable="true">
                     <div class="sidebar-heading">SOP: Coding</div>
                     <div id="sop-coding" class="list">
                         <div class="empty-state">Loading coding SOPs...</div>
                     </div>
                 </div>
 
-                <div class="dashboard-card span-4">
+                <div class="dashboard-card span-4" data-section="desktop" draggable="true">
                     <div class="sidebar-heading">SOP: Desktop Automation</div>
                     <div id="sop-desktop" class="list">
                         <div class="empty-state">Loading desktop SOPs...</div>
@@ -341,6 +434,7 @@
                 </div>
             </div>
         </div>
+        <div id="notification-tray" class="notification-tray" aria-live="polite" aria-label="Notifications"></div>
 
         <div id="chat-container">
             <div class="message bot">
@@ -401,12 +495,26 @@
         const sopTools = document.getElementById('sop-tools');
         const sopCoding = document.getElementById('sop-coding');
         const sopDesktop = document.getElementById('sop-desktop');
+        const globalProgress = document.getElementById('global-progress');
+        const globalSearch = document.getElementById('global-search');
+        const globalSearchSuggestions = document.getElementById('global-search-suggestions');
+        const viewMode = document.getElementById('view-mode');
+        const roleSelect = document.getElementById('role-select');
+        const languageSelect = document.getElementById('language-select');
+        const notificationTray = document.getElementById('notification-tray');
+        const breadcrumbProject = document.getElementById('breadcrumb-project');
+        const breadcrumbSection = document.getElementById('breadcrumb-section');
+        const dashboardGrid = document.querySelector('.dashboard-grid');
 
         const trainingPrompt = document.getElementById('training-prompt');
         const trainingModifier = document.getElementById('training-modifier');
         const trainingIterations = document.getElementById('training-iterations');
         const trainingHours = document.getElementById('training-hours');
         const trainingCpu = document.getElementById('training-cpu');
+        const trainingValidation = document.getElementById('training-validation');
+        const trainingFilter = document.getElementById('training-filter');
+        const trainingSort = document.getElementById('training-sort');
+        const exportTrainingBtn = document.getElementById('export-training-btn');
         const runTrainingPromptBtn = document.getElementById('run-training-prompt-btn');
         const runAbTrainingBtn = document.getElementById('run-ab-training-btn');
         const startProgramTrainingBtn = document.getElementById('start-program-training-btn');
@@ -442,6 +550,7 @@
         let chatHistory = [];
         let trackedJobs = [];
         const UI_STATE_KEY = 'aegis.project.dashboard.state.v3';
+        const DASHBOARD_CACHE_KEY = 'aegis.project.dashboard.cache.v1';
         const MAX_STORED_MESSAGES = 80;
 
         const TRAINING_RUNS_KEY = 'aegis.training.runs.v1';
@@ -452,6 +561,9 @@
         let aiderPollTimer = null;
         let activeGeneticCoderJobId = null;
         let geneticCoderPollTimer = null;
+        let latestDashboardData = null;
+        let dragSourceCard = null;
+        let offlineModeActive = false;
 
         function readStoredState() {
             try {
@@ -468,6 +580,13 @@
                     project: projectInput.value || 'general',
                     kernelMode: kernelMode.value || 'auto',
                     inputDraft: input.value || '',
+                    search: globalSearch?.value || '',
+                    viewMode: viewMode?.value || 'list',
+                    role: roleSelect?.value || 'operator',
+                    language: languageSelect?.value || 'en',
+                    trainingFilter: trainingFilter?.value || 'all',
+                    trainingSort: trainingSort?.value || 'newest',
+                    cardOrder: Array.from(document.querySelectorAll('.dashboard-card[data-section]')).map((card) => card.dataset.section),
                     lastPrompt,
                     chatHistory: chatHistory.slice(-MAX_STORED_MESSAGES),
                     trackedJobs,
@@ -499,6 +618,27 @@
             }
             if (state.inputDraft) {
                 input.value = state.inputDraft;
+            }
+            if (state.search && globalSearch) {
+                globalSearch.value = state.search;
+            }
+            if (state.viewMode && viewMode) {
+                viewMode.value = state.viewMode;
+            }
+            if (state.role && roleSelect) {
+                roleSelect.value = state.role;
+            }
+            if (state.language && languageSelect) {
+                languageSelect.value = state.language;
+            }
+            if (state.trainingFilter && trainingFilter) {
+                trainingFilter.value = state.trainingFilter;
+            }
+            if (state.trainingSort && trainingSort) {
+                trainingSort.value = state.trainingSort;
+            }
+            if (Array.isArray(state.cardOrder)) {
+                restoreCardOrder(state.cardOrder);
             }
             if (state.lastPrompt) {
                 lastPrompt = state.lastPrompt;
@@ -577,6 +717,9 @@
             activeProjectPill.textContent = project;
             composerProjectLabel.textContent = project;
             projectSnapshotTitle.textContent = project;
+            if (breadcrumbProject) {
+                breadcrumbProject.textContent = project;
+            }
             persistUiState();
             return project;
         }
@@ -585,6 +728,185 @@
             input.value = text;
             persistUiState();
             input.focus();
+        }
+
+        function setProgress(percent, active = true) {
+            if (!globalProgress) {
+                return;
+            }
+            const clamped = Math.max(0, Math.min(Number(percent) || 0, 100));
+            globalProgress.style.width = `${clamped}%`;
+            globalProgress.classList.toggle('active', active && clamped > 0);
+        }
+
+        function notify(message, tone = '', timeoutMs = 4200) {
+            if (!notificationTray) {
+                return;
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${tone}`.trim();
+            toast.textContent = message;
+            notificationTray.appendChild(toast);
+            setTimeout(() => toast.remove(), timeoutMs);
+        }
+
+        function setOfflineMode(enabled, reason = '') {
+            const next = Boolean(enabled);
+            document.body.classList.toggle('offline', next);
+            if (next && !offlineModeActive && reason) {
+                notify(reason, 'warn');
+            }
+            if (!next && offlineModeActive) {
+                notify('Runtime reconnected.', 'ok', 2200);
+            }
+            offlineModeActive = next;
+        }
+
+        function readDashboardCache(project) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(DASHBOARD_CACHE_KEY) || '{}');
+                return cache[project] || null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function writeDashboardCache(project, data) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(DASHBOARD_CACHE_KEY) || '{}');
+                cache[project] = { data, savedAt: new Date().toISOString() };
+                localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+                console.warn('Dashboard cache could not be saved', error);
+            }
+        }
+
+        function activeSearchText() {
+            return (globalSearch?.value || '').trim().toLowerCase();
+        }
+
+        function textMatchesSearch(text) {
+            const query = activeSearchText();
+            return !query || String(text || '').toLowerCase().includes(query);
+        }
+
+        function updateSearchSuggestions() {
+            if (!globalSearchSuggestions) {
+                return;
+            }
+            const terms = new Set();
+            trainingRuns.slice(-24).forEach((run) => {
+                if (run.type) terms.add(run.type);
+                if (run.status) terms.add(run.status);
+                (run.logicPoints || []).slice(0, 4).forEach((point) => terms.add(point));
+            });
+            if (latestDashboardData) {
+                (latestDashboardData.recent_reasoning_notes || []).slice(0, 8).forEach((item) => terms.add(item.name || 'reasoning'));
+                (latestDashboardData.recent_vector_memories || []).slice(0, 8).forEach((item) => terms.add(item.kind || item.role || 'memory'));
+            }
+            globalSearchSuggestions.innerHTML = Array.from(terms).filter(Boolean).slice(0, 40)
+                .map((term) => `<option value="${escapeHtml(term)}"></option>`).join('');
+        }
+
+        function applyViewMode() {
+            const mode = viewMode?.value || 'list';
+            document.body.classList.toggle('compact-view', mode === 'compact');
+            document.body.classList.toggle('grid-view', mode === 'grid');
+            persistUiState();
+            renderTrainingDashboard();
+        }
+
+        function applyRolePermissions() {
+            const role = roleSelect?.value || 'operator';
+            const actionButtons = [runTrainingPromptBtn, startAiderTerminalBtn, startGeneticCoderBtn, stopAiderTerminalBtn, longCrawlBtn, startProgramTrainingBtn].filter(Boolean);
+            const readonly = role === 'viewer';
+            actionButtons.forEach((button) => {
+                button.disabled = readonly;
+                button.classList.toggle('permission-readonly', readonly);
+                button.title = readonly ? 'Viewer role can inspect data but cannot start runs.' : '';
+            });
+            if (role === 'reviewer') {
+                notify('Reviewer mode: feedback and inspection stay enabled; action buttons remain available for local testing.', 'ok', 2600);
+            }
+            persistUiState();
+        }
+
+        function applyLanguageSupport() {
+            const language = languageSelect?.value || 'en';
+            const notes = {
+                en: 'Language support: English UI labels active.',
+                es: 'Soporte de idioma: etiquetas principales en ingles, notas de ayuda listas para traduccion.',
+                fr: 'Langue: libelles principaux en anglais, aide prete pour traduction.'
+            };
+            composerRuntimeLabel.title = notes[language] || notes.en;
+            persistUiState();
+        }
+
+        function validateTrainingInputs() {
+            const errors = [];
+            const prompt = (trainingPrompt?.value || '').trim();
+            const iterations = Number(trainingIterations?.value || 0);
+            const hours = Number(trainingHours?.value || 0);
+            const cpu = Number(trainingCpu?.value || 0);
+            if (!prompt) errors.push('Prompt is required.');
+            if (!Number.isFinite(iterations) || iterations < 1 || iterations > 9) errors.push('Iterations must be 1-9.');
+            if (!Number.isFinite(hours) || hours < 1 || hours > 24) errors.push('Hours must be 1-24.');
+            if (!Number.isFinite(cpu) || cpu < 15 || cpu > 60) errors.push('CPU target must be 15-60.');
+            if (trainingValidation) {
+                trainingValidation.textContent = errors.join(' ');
+            }
+            const ok = errors.length === 0;
+            [runTrainingPromptBtn, startAiderTerminalBtn, startGeneticCoderBtn].filter(Boolean).forEach((button) => {
+                button.disabled = !ok || (roleSelect?.value === 'viewer');
+            });
+            return ok;
+        }
+
+        function restoreCardOrder(order) {
+            if (!dashboardGrid) {
+                return;
+            }
+            order.forEach((section) => {
+                const card = Array.from(dashboardGrid.querySelectorAll('.dashboard-card[data-section]'))
+                    .find((entry) => entry.dataset.section === section);
+                if (card) {
+                    dashboardGrid.appendChild(card);
+                }
+            });
+        }
+
+        function setupDragAndDrop() {
+            if (!dashboardGrid) {
+                return;
+            }
+            dashboardGrid.querySelectorAll('.dashboard-card[data-section]').forEach((card) => {
+                card.addEventListener('dragstart', (event) => {
+                    dragSourceCard = card;
+                    card.classList.add('drag-source');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', card.dataset.section || '');
+                });
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('drag-source');
+                    dashboardGrid.querySelectorAll('.drop-target').forEach((target) => target.classList.remove('drop-target'));
+                    dragSourceCard = null;
+                    persistUiState();
+                    notify('Dashboard layout saved locally.', 'ok', 1800);
+                });
+                card.addEventListener('dragover', (event) => {
+                    if (!dragSourceCard || dragSourceCard === card) return;
+                    event.preventDefault();
+                    card.classList.add('drop-target');
+                });
+                card.addEventListener('dragleave', () => card.classList.remove('drop-target'));
+                card.addEventListener('drop', (event) => {
+                    event.preventDefault();
+                    card.classList.remove('drop-target');
+                    if (dragSourceCard && dragSourceCard !== card) {
+                        dashboardGrid.insertBefore(dragSourceCard, card);
+                    }
+                });
+            });
         }
 
         function renderActions() {
@@ -605,7 +927,8 @@
         }
 
         function renderSopList(target, items) {
-            target.innerHTML = buildMiniList(items, 'No SOP items loaded yet.', (item) => {
+            const filtered = (items || []).filter((item) => textMatchesSearch(item));
+            target.innerHTML = buildMiniList(filtered, activeSearchText() ? 'No SOP items match the search.' : 'No SOP items loaded yet.', (item) => {
                 return `<div class="list-item">${escapeHtml(item)}</div>`;
             });
         }
@@ -759,12 +1082,15 @@
 
         async function pollStatus() {
             try {
+                setProgress(18, true);
                 const [healthRes, signalRes] = await Promise.all([
                     fetch('/api/health'),
                     fetch('/api/signal/status')
                 ]);
                 const health = await healthRes.json();
                 const signal = await signalRes.json();
+                setOfflineMode(false);
+                setProgress(62, true);
 
                 memoryStatusValue.textContent = health.memory_status || 'UNKNOWN';
                 memoryStatusSub.textContent = 'Readable project memory';
@@ -797,7 +1123,10 @@
                     statusDot.style.background = '#8b0000';
                     statusDot.style.boxShadow = 'none';
                 }
+                setProgress(100, true);
+                setTimeout(() => setProgress(0, false), 350);
             } catch (error) {
+                setOfflineMode(true, 'Runtime health probe failed; using local/offline UI state.');
                 memoryStatusValue.textContent = 'OFFLINE';
                 memoryStatusSub.textContent = 'Health probe failed';
                 vectorStatusValue.textContent = 'OFFLINE';
@@ -809,6 +1138,7 @@
                 composerRuntimeLabel.textContent = 'Runtime check failed';
                 statusDot.style.background = '#8b0000';
                 statusDot.style.boxShadow = 'none';
+                setProgress(0, false);
             }
         }
 
@@ -837,6 +1167,9 @@
             }
             trainingStatus.textContent = text;
             trainingStatus.className = `training-status ${tone}`.trim();
+            if (tone === 'ok' || tone === 'warn') {
+                notify(text, tone, tone === 'warn' ? 5200 : 2600);
+            }
         }
 
         function renderAiderTerminal(job) {
@@ -930,6 +1263,10 @@
         }
 
         async function startAiderTerminal() {
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before starting Aider.', 'warn');
+                return;
+            }
             const prompt = buildTrainingModifierPrompt(trainingPrompt?.value || input.value || 'Summarize the current project and show terminal-visible evidence.');
             if (!prompt.trim()) {
                 setTrainingStatus('Add a prompt before starting Aider.', 'warn');
@@ -1034,6 +1371,10 @@
         }
 
         async function startGeneticCoder() {
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before starting the genetic coder.', 'warn');
+                return;
+            }
             const objective = trainingPrompt?.value || input.value || 'Build a tiny Python program and prove it runs.';
             if (!objective.trim()) {
                 setTrainingStatus('Add a prompt before starting the genetic coder.', 'warn');
@@ -1287,7 +1628,24 @@
             if (!trainingRunList) {
                 return;
             }
-            const recent = trainingRuns.slice(-6).reverse();
+            const filter = trainingFilter?.value || 'all';
+            const sort = trainingSort?.value || 'newest';
+            let recent = trainingRuns.filter((run) => {
+                const haystack = `${run.type || ''} ${run.status || ''} ${run.prompt || ''} ${run.details || ''} ${(run.logicPoints || []).join(' ')}`;
+                if (!textMatchesSearch(haystack)) return false;
+                if (filter === 'pass') return run.testsPass === true;
+                if (filter === 'fail') return run.testsPass === false || run.status === 'failed' || run.status === 'error';
+                if (filter === 'code') return Number(run.codeLines || 0) > 0 || (run.logicPoints || []).includes('needs_coding');
+                if (filter === 'research') return Number(run.researchHits || 0) > 0 || (run.logicPoints || []).includes('needs_research');
+                return true;
+            });
+            recent.sort((a, b) => {
+                if (sort === 'slowest') return (b.responseMs || 0) - (a.responseMs || 0);
+                if (sort === 'loc') return (b.codeLines || 0) - (a.codeLines || 0);
+                if (sort === 'pass') return Number(b.testsPass === true) - Number(a.testsPass === true);
+                return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+            });
+            recent = recent.slice(0, 12);
             trainingRunList.innerHTML = recent.length ? recent.map((run) => `
                 <div class="list-item">
                     <strong>${escapeHtml(run.type || 'training')} ${escapeHtml(run.status || '')}</strong>
@@ -1295,6 +1653,35 @@
                     <div class="metric-sub">${Math.round(run.responseMs || 0)}ms | ${run.codeLines || 0} LOC | ${run.researchHits || 0} research | P(run) ${Math.round((run.predictedRunProbability || 0) * 100)}% | ${run.testsPass === true ? 'pass' : run.testsPass === false ? 'fail' : 'observing'}${run.logicPoints && run.logicPoints.length ? ` | logic: ${escapeHtml(run.logicPoints.slice(0, 5).join(', '))}` : ''}</div>
                 </div>
             `).join('') : '<div class="empty-state">No testing or training runs recorded yet.</div>';
+        }
+
+        function exportTrainingText() {
+            const project = getActiveProject();
+            const lines = [
+                `AEGIS training export`,
+                `Project: ${project}`,
+                `Exported: ${new Date().toISOString()}`,
+                ''
+            ];
+            trainingRuns.slice().reverse().forEach((run, index) => {
+                lines.push(`# ${index + 1} ${run.type || 'run'} ${run.status || ''}`);
+                lines.push(`Prompt: ${run.prompt || run.objective || ''}`);
+                lines.push(`Response ms: ${Math.round(run.responseMs || 0)}`);
+                lines.push(`LOC: ${run.codeLines || 0}`);
+                lines.push(`Research hits: ${run.researchHits || 0}`);
+                lines.push(`Tests: ${run.testsPass === true ? 'pass' : run.testsPass === false ? 'fail' : 'observed'}`);
+                if (run.workspace) lines.push(`Workspace: ${run.workspace}`);
+                if (run.details) lines.push(`Details: ${run.details}`);
+                if (run.logicPoints && run.logicPoints.length) lines.push(`Logic: ${run.logicPoints.join(', ')}`);
+                lines.push('');
+            });
+            const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `aegis-${project}-training-${Date.now()}.txt`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            notify('Training export prepared as TXT.', 'ok');
         }
 
         async function postTrainingTwinEvent(run) {
@@ -1399,6 +1786,10 @@
 
         async function runPromptTraining() {
             const project = updateProjectLabels();
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before running prompt tests.', 'warn');
+                return;
+            }
             const basePrompt = (trainingPrompt?.value || '').trim();
             if (!basePrompt) {
                 setTrainingStatus('Add a prompt first.', 'warn');
@@ -1478,6 +1869,10 @@
 
         async function runAbTraining() {
             const project = updateProjectLabels();
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before running A/B tests.', 'warn');
+                return;
+            }
             const basePrompt = (trainingPrompt?.value || '').trim();
             if (!basePrompt) {
                 setTrainingStatus('Add a prompt first.', 'warn');
@@ -1574,6 +1969,10 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
 
         async function startProgramTraining() {
             const project = updateProjectLabels();
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before starting the program loop.', 'warn');
+                return;
+            }
             const objective = buildTrainingModifierPrompt(trainingPrompt?.value || 'Create and test a program that creates another program.');
             const runId = `program-${Date.now()}`;
             const startedAt = new Date().toISOString();
@@ -1646,6 +2045,10 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
 
         async function runResearchProbe() {
             const project = updateProjectLabels();
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before running research.', 'warn');
+                return;
+            }
             const query = (trainingPrompt?.value || 'current project build and testing risks').trim();
             const startedAt = new Date().toISOString();
             const start = performance.now();
@@ -1691,6 +2094,10 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
 
         async function startLongResearchCrawl() {
             const project = updateProjectLabels();
+            if (!validateTrainingInputs()) {
+                setTrainingStatus('Fix validation before starting the crawl.', 'warn');
+                return;
+            }
             const objective = buildTrainingModifierPrompt(trainingPrompt?.value || 'Build a long research dossier with compressed algorithms and deployment verification gates.');
             const runId = `long-research-${Date.now()}`;
             const startedAt = new Date().toISOString();
@@ -1784,6 +2191,56 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
             }
         }
 
+        function renderProjectDashboardData(data) {
+            latestDashboardData = data || {};
+            const projectTimescale = latestDashboardData.project_timescale || {};
+            const projectVector = latestDashboardData.project_vector || {};
+            const reasoningNotes = latestDashboardData.recent_reasoning_notes || [];
+            const vectorMemories = latestDashboardData.recent_vector_memories || [];
+            const secretKeys = latestDashboardData.secret_keys || [];
+            const sops = latestDashboardData.sops || {};
+
+            projectTimescaleCount.textContent = String(projectTimescale.timescale_files || 0);
+            projectVectorCount.textContent = String(projectVector.semantic_points || projectVector.lexical_points || 0);
+            projectSecretCount.textContent = String(secretKeys.length);
+            projectReasoningCount.textContent = String(
+                reasoningNotes.length || (projectTimescale.reasoning_files || []).length || 0
+            );
+
+            const search = activeSearchText();
+            const filteredReasoning = reasoningNotes.filter((item) => textMatchesSearch(`${item.name || ''} ${item.content || ''}`));
+            const filteredVectors = vectorMemories.filter((item) => textMatchesSearch(`${item.kind || ''} ${item.role || ''} ${item.content || ''}`));
+
+            reasoningNoteList.innerHTML = buildMiniList(
+                filteredReasoning,
+                search ? 'No reasoning notes match the search.' : 'No project reasoning notes yet.',
+                (item) => `
+                    <div class="list-item">
+                        <strong>${escapeHtml(item.name || 'Reasoning note')}</strong>
+                        ${escapeHtml((item.content || '').slice(0, 260)).replace(/\n/g, '<br>')}
+                    </div>
+                `
+            );
+
+            vectorMemoryList.innerHTML = buildMiniList(
+                filteredVectors,
+                search ? 'No vector memories match the search.' : 'No project vector memories yet.',
+                (item) => `
+                    <div class="list-item">
+                        <strong>${escapeHtml(`${item.kind || 'memory'} / ${item.role || 'unknown'}`)}</strong>
+                        ${escapeHtml((item.content || '').slice(0, 220)).replace(/\n/g, '<br>')}
+                    </div>
+                `
+            );
+
+            renderSopList(sopTools, sops.tools || []);
+            renderSopList(sopCoding, sops.coding || []);
+            renderSopList(sopDesktop, sops.desktop_automation || []);
+
+            vectorStatusSub.textContent = `Lex ${projectVector.lexical_points || 0} / Sem ${projectVector.semantic_points || 0}`;
+            updateSearchSuggestions();
+        }
+
         async function loadProjectDashboard(force = false) {
             if (document.hidden && !force) {
                 return;
@@ -1796,56 +2253,31 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
             const project = updateProjectLabels();
 
             try {
+                setProgress(24, true);
                 const response = await fetch(`/api/project/dashboard?project=${encodeURIComponent(project)}`);
+                if (!response.ok) {
+                    throw new Error(`Dashboard request failed: ${response.status}`);
+                }
                 const data = await response.json();
-
-                const projectTimescale = data.project_timescale || {};
-                const projectVector = data.project_vector || {};
-                const reasoningNotes = data.recent_reasoning_notes || [];
-                const vectorMemories = data.recent_vector_memories || [];
-                const secretKeys = data.secret_keys || [];
-                const sops = data.sops || {};
-
-                projectTimescaleCount.textContent = String(projectTimescale.timescale_files || 0);
-                projectVectorCount.textContent = String(projectVector.semantic_points || projectVector.lexical_points || 0);
-                projectSecretCount.textContent = String(secretKeys.length);
-                projectReasoningCount.textContent = String(
-                    reasoningNotes.length || (projectTimescale.reasoning_files || []).length || 0
-                );
-
-                reasoningNoteList.innerHTML = buildMiniList(
-                    reasoningNotes,
-                    'No project reasoning notes yet.',
-                    (item) => `
-                        <div class="list-item">
-                            <strong>${escapeHtml(item.name || 'Reasoning note')}</strong>
-                            ${escapeHtml((item.content || '').slice(0, 260)).replace(/\n/g, '<br>')}
-                        </div>
-                    `
-                );
-
-                vectorMemoryList.innerHTML = buildMiniList(
-                    vectorMemories,
-                    'No project vector memories yet.',
-                    (item) => `
-                        <div class="list-item">
-                            <strong>${escapeHtml(`${item.kind || 'memory'} / ${item.role || 'unknown'}`)}</strong>
-                            ${escapeHtml((item.content || '').slice(0, 220)).replace(/\n/g, '<br>')}
-                        </div>
-                    `
-                );
-
-                renderSopList(sopTools, sops.tools || []);
-                renderSopList(sopCoding, sops.coding || []);
-                renderSopList(sopDesktop, sops.desktop_automation || []);
-
-                vectorStatusSub.textContent = `Lex ${projectVector.lexical_points || 0} / Sem ${projectVector.semantic_points || 0}`;
+                renderProjectDashboardData(data);
+                writeDashboardCache(project, data);
+                setOfflineMode(false);
+                setProgress(100, true);
+                setTimeout(() => setProgress(0, false), 350);
             } catch (error) {
-                reasoningNoteList.innerHTML = '<div class="empty-state">Dashboard load failed.</div>';
-                vectorMemoryList.innerHTML = '<div class="empty-state">Vector memory load failed.</div>';
-                sopTools.innerHTML = '<div class="empty-state">Tool SOPs unavailable.</div>';
-                sopCoding.innerHTML = '<div class="empty-state">Coding SOPs unavailable.</div>';
-                sopDesktop.innerHTML = '<div class="empty-state">Desktop SOPs unavailable.</div>';
+                const cached = readDashboardCache(project);
+                if (cached && cached.data) {
+                    renderProjectDashboardData(cached.data);
+                    setOfflineMode(true, `Dashboard API unavailable; showing cached data from ${new Date(cached.savedAt).toLocaleTimeString()}.`);
+                } else {
+                    reasoningNoteList.innerHTML = '<div class="empty-state">Dashboard load failed.</div>';
+                    vectorMemoryList.innerHTML = '<div class="empty-state">Vector memory load failed.</div>';
+                    sopTools.innerHTML = '<div class="empty-state">Tool SOPs unavailable.</div>';
+                    sopCoding.innerHTML = '<div class="empty-state">Coding SOPs unavailable.</div>';
+                    sopDesktop.innerHTML = '<div class="empty-state">Desktop SOPs unavailable.</div>';
+                    setOfflineMode(true, 'Dashboard API unavailable and no cache exists yet.');
+                }
+                setProgress(0, false);
             } finally {
                 dashboardBusy = false;
             }
@@ -2184,6 +2616,43 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
 
         refreshDashboardBtn.onclick = () => loadProjectDashboard(true);
         focusResearchBtn.onclick = () => applyPrompt('/research map the current project risks and next coding tasks');
+        document.querySelectorAll('.nav-link[data-section-target]').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.nav-link').forEach((entry) => entry.classList.remove('active'));
+                button.classList.add('active');
+                const target = document.getElementById(button.dataset.sectionTarget);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (breadcrumbSection) breadcrumbSection.textContent = button.textContent.trim();
+                }
+            });
+        });
+        if (globalSearch) {
+            globalSearch.addEventListener('input', () => {
+                persistUiState();
+                renderTrainingDashboard();
+                if (latestDashboardData) renderProjectDashboardData(latestDashboardData);
+            });
+        }
+        if (viewMode) viewMode.addEventListener('change', applyViewMode);
+        if (roleSelect) roleSelect.addEventListener('change', () => {
+            applyRolePermissions();
+            validateTrainingInputs();
+        });
+        if (languageSelect) languageSelect.addEventListener('change', applyLanguageSupport);
+        [trainingPrompt, trainingIterations, trainingHours, trainingCpu].filter(Boolean).forEach((control) => {
+            control.addEventListener('input', () => {
+                validateTrainingInputs();
+                persistUiState();
+            });
+        });
+        [trainingFilter, trainingSort].filter(Boolean).forEach((control) => {
+            control.addEventListener('change', () => {
+                persistUiState();
+                renderTrainingDashboard();
+            });
+        });
+        if (exportTrainingBtn) exportTrainingBtn.onclick = () => exportTrainingText();
 
         if (runTrainingPromptBtn) runTrainingPromptBtn.onclick = () => runPromptTraining();
         if (runAbTrainingBtn) runAbTrainingBtn.onclick = () => runAbTraining();
@@ -2225,6 +2694,11 @@ Round ${round}/${iterations}. Return runnable code or a job id, plus explicit pa
         window.clearFullConversation = clearFullConversation;
 
         restoreUiState();
+        setupDragAndDrop();
+        applyViewMode();
+        applyRolePermissions();
+        applyLanguageSupport();
+        validateTrainingInputs();
         renderStoredChatHistory();
         updateProjectLabels();
         refreshTrainingDashboard(false);
