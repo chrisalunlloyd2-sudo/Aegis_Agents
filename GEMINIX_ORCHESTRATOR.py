@@ -13,9 +13,10 @@ from datetime import datetime
 # Objective: Purge, Renew, and Report.
 # ==========================================
 
-REPORT_PATH = r"C:\Users\viper\Desktop\GEMINIX_STATUS_REPORT.txt"
-LAUNCHER_SCRIPT = r"C:\Users\viper\LAUNCH_MOLTBOOK.py"
-TUNNEL_LOG = r"C:\Users\viper\tunnel.log"
+USER_HOME = os.path.expanduser("~")
+REPORT_PATH = os.getenv("GEMINIX_REPORT_PATH", os.path.join(USER_HOME, "Desktop", "GEMINIX_STATUS_REPORT.txt"))
+LAUNCHER_SCRIPT = os.getenv("GEMINIX_LAUNCHER_SCRIPT", os.path.join(USER_HOME, "LAUNCH_MOLTBOOK.py"))
+TUNNEL_LOG = os.getenv("AEGIS_TUNNEL_LOG", os.path.join(USER_HOME, "tunnel.log"))
 
 def get_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -85,7 +86,7 @@ def generate_report(checks, url):
 ---
 ## 🚀 ACCESS PORTAL:
 - **Cloudflare URL:** {url}
-- **Auth Token:** gemini_bridge_token_123
+- **Auth Token:** configured through AUTH_TOKEN
 - **Local Port:** 5005
 
 ## 🧬 ALICE'S NOTES:

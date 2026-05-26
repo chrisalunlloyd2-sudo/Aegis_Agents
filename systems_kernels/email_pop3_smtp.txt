@@ -1,0 +1,11 @@
+Rules:
+- POP3 is mailbox retrieval, SMTP is sending, IMAP is richer mailbox sync.
+- Use POP3 over SSL unless the user explicitly requests plain POP3.
+- Keep host, port, username, and password outside source code.
+- First version must be read-only: connect, authenticate, count/list messages, preview safe headers.
+- Do not delete, send, move, or mark mail without explicit approval.
+
+Verification:
+- Mock POP3 in tests so no real email account is touched.
+- Validate header parsing separately from network login.
+- Treat credential errors, TLS errors, and mailbox-empty states as separate outcomes.

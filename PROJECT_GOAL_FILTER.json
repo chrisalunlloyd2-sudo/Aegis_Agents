@@ -1,0 +1,37 @@
+{
+  "profile": {
+    "name": "aegis_project_goal_filter",
+    "schema_version": "goal-filter-v1",
+    "core_goals": [
+      "build a local-first AI development system",
+      "make the Web UI responsive and evidence-driven",
+      "use Fabric as persistent wisdom",
+      "use LAVA as volatile event workspace",
+      "use vector DB for citations and full evidence",
+      "use genetic coding and SOAP-style fitness for program synthesis",
+      "keep scientific-method discipline with one tested variable at a time"
+    ],
+    "keep_if_correlated_with": [
+      "AEGIS runtime",
+      "Fabric JSON templates",
+      "LAVA event orchestration",
+      "ACL/KQML agent communication",
+      "genetic coder",
+      "SOAP optimizer",
+      "Aider terminal lane",
+      "Karoo-style genetic programming",
+      "compiler/test/debug evidence",
+      "webcrawl evidence extraction",
+      "local model performance",
+      "RAM/VRAM working memory"
+    ],
+    "prune_if": [
+      "stale auto-reply fragments",
+      "uncited generic SEO text",
+      "duplicated guidance",
+      "old error context that no longer matches the current code",
+      "private credentials or personal contact data",
+      "claims without test evidence"
+    ]
+  }
+}

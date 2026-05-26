@@ -1,0 +1,9 @@
+Rules:
+- A claim of working code requires evidence.
+- Prefer syntax check first, then focused unit test, then smoke run.
+- If tests cannot run, state the exact blocker and the next command to try.
+- Keep stdout/stderr snippets attached to the result.
+
+Verification:
+- Passing evidence can be exit code 0, test framework pass output, or an explicit checked artifact.
+- Do not say "verified", "working", or "passes" without an EvidenceSet item.

@@ -1,0 +1,121 @@
+{
+  "templates": [
+    {
+      "name": "live_stream_completion",
+      "schema_version": "fabric-json-v1",
+      "description": "Keep visible chat replies complete and trace any cutoff.",
+      "objective": "Stream natural replies until the model is done, then record whether the reply ended normally or hit a budget/timeout.",
+      "keywords": ["stream", "cut", "cutoff", "cut off", "getting", "before", "end", "finish", "reply", "tokens", "timeout", "long", "long reply", "story", "complete"],
+      "heuristics": ["single_stream_owner", "final_reply_visible", "trace_done_reason"],
+      "constraints": {"main_context_tool_calls": false, "hidden_final_reply": false},
+      "metrics": {"first_token_ms": "tracked", "finish_reason": "tracked", "visible_chars": "tracked"},
+      "sop": ["Use one stream owner for the visible reply.", "After tools finish, send a visible final reply chunk.", "If response budget ends generation, mark the trace as clipped."],
+      "tool_context_rule": "Tool calls run in a separate tool context and return compact evidence only.",
+      "data_boundary": "Fabric defines stream behavior; runtime traces store timings and finish reasons."
+    },
+    {
+      "name": "post_reply_indexing_fast_path",
+      "schema_version": "fabric-json-v1",
+      "description": "Prevent background indexing from looking like the model is still replying.",
+      "objective": "After a reply, write lexical/DB evidence first and defer semantic model embeddings unless explicitly enabled.",
+      "keywords": ["cpu", "spike", "cpu spike", "after", "after reply", "reply", "embedding", "indexing", "vector", "write", "vector write", "postprocess", "slow"],
+      "heuristics": ["lexical_first", "semantic_opt_in", "no_model_wakeup_after_reply"],
+      "constraints": {"semantic_write_default": false, "chat_hot_path_model_calls": false},
+      "metrics": {"postprocess_ms": "tracked", "ollama_after_reply": "near_zero"},
+      "sop": ["Store prompt/reply evidence cheaply.", "Do not wake Ollama for semantic embeddings on ordinary chat turns.", "Batch heavy indexing into an explicit research/build lane."],
+      "tool_context_rule": "Post-reply indexing is not a user-visible tool call.",
+      "data_boundary": "Fabric stores policy; vector DB stores lexical and optional semantic points."
+    },
+    {
+      "name": "aider_coding_lane",
+      "schema_version": "fabric-json-v1",
+      "description": "Aider is the coding terminal lane and evidence recorder.",
+      "objective": "Use Aider for code edits when a task requires terminal-visible pair-programming evidence.",
+      "keywords": ["aider", "terminal", "pair programming", "coding lane", "diff", "patch", "terminal output"],
+      "heuristics": ["terminal_visible", "bounded_edits", "diff_and_test_evidence"],
+      "constraints": {"aider_replaces_chat": false, "claim_without_terminal_evidence": false},
+      "metrics": {"aider_available": "boolean", "diff_seen": "boolean", "test_seen": "boolean"},
+      "sop": ["Start Aider only for approved coding work.", "Record stdout, stderr, diffs, and tests to the Web UI.", "Let the model talk naturally before and after terminal evidence."],
+      "tool_context_rule": "Aider output appears in the terminal evidence panel, not as raw chat context.",
+      "data_boundary": "Fabric stores when/how to use Aider; terminal logs store what Aider did."
+    },
+    {
+      "name": "lava_event_ui_recorder",
+      "schema_version": "fabric-json-v1",
+      "description": "LAVA records KQML/SOAP/GC events for the Web UI.",
+      "objective": "Use the LAVA event plane as volatile coordination and UI evidence, not as long-term wisdom.",
+      "keywords": ["lava", "event", "ui", "record", "kqml", "soap", "genetic coder", "orchestrate"],
+      "heuristics": ["volatile_state", "event_count", "kqml_wire"],
+      "constraints": {"long_term_memory": false, "raw_screenshot_storage": false},
+      "metrics": {"event_count": "tracked", "failure_count": "tracked", "timeout_count": "tracked"},
+      "sop": ["Record each agent/tool phase as an event.", "Expose recent events to the UI.", "Distill only successful patterns back to DB/Fabric after evidence."],
+      "tool_context_rule": "LAVA event payloads are summarized before entering the main reply.",
+      "data_boundary": "Fabric stores LAVA purpose; LAVA DB stores volatile events."
+    },
+    {
+      "name": "soap_success_implementation",
+      "schema_version": "fabric-json-v1",
+      "description": "SOAP optimizer lane for heuristic candidate scoring.",
+      "objective": "Use SOAP-style adaptive scoring for genetic coder candidates while keeping training conservative and evidence-based.",
+      "keywords": ["soap", "optimizer", "shampoo", "adam", "precondition", "fitness", "mutation", "candidate"],
+      "heuristics": ["periodic_preconditioning", "adam_like_adaptivity", "conservative_lr", "fitness_evidence"],
+      "constraints": {"train_without_tests": false, "promote_failed_candidate": false},
+      "metrics": {"fitness": "tracked", "pass_rate": "tracked", "step_variance": "tracked"},
+      "sop": ["Mutate candidates.", "Score with tests and static signals.", "Update heuristic weights conservatively.", "Promote only passing samples."],
+      "tool_context_rule": "SOAP scores are tool evidence, not raw conversational content.",
+      "data_boundary": "Fabric stores the SOAP SOP; DB stores samples, scores, and pass/fail traces."
+    },
+    {
+      "name": "code_template_extrapolation_lab_output",
+      "schema_version": "fabric-json-v1",
+      "description": "When code is requested, infer a concrete code template before mutation.",
+      "objective": "Let SOAP and the genetic coder pull a code template, extrapolate framework, pages, target line count, and expected files, then publish passing code into LAB_OUTPUT.",
+      "keywords": ["code template", "lab_output", "LAB_OUTPUT", "framework", "pages", "lines", "extrapolate", "complete program", "genetic coder", "soap", "write code", "build app"],
+      "heuristics": ["infer_framework_first", "estimate_size", "publish_passing_candidate", "feedback_packet_to_ai"],
+      "constraints": {"final_output_root": "C:\\Users\\viper\\LAB_OUTPUT", "claim_without_tests": false, "skip_feedback_packet": false},
+      "metrics": {"selected_template": "tracked", "estimated_pages": "tracked", "estimated_target_lines": "tracked", "final_output_dir": "tracked"},
+      "sop": ["Extract code intent from the AI/user request.", "Select the closest runnable template.", "Estimate framework, pages, target lines, and file list.", "Run compile/runtime verification.", "Copy the passing candidate to LAB_OUTPUT/<project>/<task>/FINAL.", "Return the code_template_extrapolation_feedback packet to the AI."],
+      "tool_context_rule": "Template selection and compile/test evidence stay in the tool lane; the AI receives only the compact feedback packet.",
+      "data_boundary": "Fabric defines the SOP; LAB_OUTPUT stores generated code; SQLite stores pass/fail evidence."
+    },
+    {
+      "name": "research_success_implementation",
+      "schema_version": "fabric-json-v1",
+      "description": "Research lane for source-grounded implementation work.",
+      "objective": "Collect source evidence, compress it into implementation-relevant rules, and cite the source of each rule.",
+      "keywords": ["research", "webcrawl", "whitepaper", "official docs", "github", "source", "crawl", "citation"],
+      "heuristics": ["official_first", "citation_required", "extract_rules_not_blobs"],
+      "constraints": {"uncited_claims": false, "raw_web_dump": false},
+      "metrics": {"source_count": "tracked", "citation_density": "tracked", "implementation_rules": "tracked"},
+      "sop": ["Prefer official docs and primary repositories.", "Extract rules, APIs, constraints, and examples.", "Store citations in DB/vector, not Fabric prose."],
+      "tool_context_rule": "Research tools return compressed evidence and links.",
+      "data_boundary": "Fabric stores research workflow; DB/vector store citations and extracted facts."
+    },
+    {
+      "name": "system_variable_performance_trace",
+      "schema_version": "fabric-json-v1",
+      "description": "Correlate runtime variables with observed AI performance.",
+      "objective": "Measure response latency, timeout, model, context, vector mode, Fabric count, and postprocess behavior before changing variables.",
+      "keywords": ["system vars", "performance", "correlate", "latency", "debug", "optimization", "statistics"],
+      "heuristics": ["baseline_first", "single_variable", "trace_every_change"],
+      "constraints": {"change_without_measurement": false},
+      "metrics": {"response_ms": "tracked", "timeout_count": "tracked", "cpu_after_reply": "tracked"},
+      "sop": ["Record current variables.", "Run a small prompt set.", "Compare before/after with one changed variable.", "Keep the variable only if evidence improves."],
+      "tool_context_rule": "Diagnostics run outside the main chat context and report a compact table.",
+      "data_boundary": "Fabric stores method; runtime traces and benchmarks store observations."
+    },
+    {
+      "name": "fifty_optimization_phases",
+      "schema_version": "fabric-json-v1",
+      "description": "50-point debug and code optimization discipline.",
+      "objective": "Apply optimization in phases: stream, model, context, retrieval, postprocess, tools, UI, evidence, rollback, and docs.",
+      "keywords": ["50", "debug", "optimizations", "phased", "speed", "trace", "fix"],
+      "heuristics": ["phase_order", "one_variable", "rollback_ready", "verify_each_phase"],
+      "constraints": {"parallel_behavior_changes": false, "unmeasured_optimization": false},
+      "metrics": {"phase_pass": "boolean", "regression_count": "tracked"},
+      "sop": ["List candidate optimizations.", "Group into phases.", "Apply one runtime-affecting variable at a time.", "Verify with compile, health, and Web UI/API smoke tests."],
+      "tool_context_rule": "Optimization evidence is summarized, not dumped.",
+      "data_boundary": "Fabric stores optimization SOP; DB/logs store measurements."
+    }
+  ]
+}

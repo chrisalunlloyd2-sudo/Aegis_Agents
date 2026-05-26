@@ -1,5 +1,51 @@
 # AEGIS-DIMON System Status
 
+## Current Status - 2026-04-29
+
+### Runtime posture
+- Local-first runtime is active on FastAPI port `5005`.
+- Aider is installed in `vendor/aider_venv` and exposed through `/api/aider/*`.
+- The Web UI records Aider terminal output separately from assistant chat.
+- The heuristic genetic coder is active through `/api/genetic-coder/*`.
+- The genetic coder now selects a code template, estimates framework/pages/target lines, and writes passing generated programs to `C:\Users\viper\LAB_OUTPUT\<project>\<task>\FINAL`.
+- Current preferred implementation path: Aider/user outline -> genetic coder -> compile/test/debugger evidence -> SQLite success memory.
+
+### Verified evidence
+- `heuristic_genetic_coder.py` compiles.
+- `gemini_bridge_api_fast.py` compiles.
+- Smoke job `genetic-1777438289-d5b090df` produced a Python candidate that compiled, ran, printed `PASS`, reached best fitness `0.9072`, and wrote a success row to `genetic_code_successes`.
+- Direct and API smoke jobs on 2026-05-01 selected `python_local_web_app`, passed compile/runtime tests, and wrote `AEGIS_BUILD_PACKET.json` with `code_template_extrapolation_feedback` into `LAB_OUTPUT`.
+
+### New debugger path
+- `DebuggerSet` is now part of the genetic coder state table.
+- Current live adapter parses Python compiler/runtime output into bounded repair hints.
+- Future Binary Ninja/Vector35 or equivalent debugger adapters should feed trace evidence into this same loop: compile/build -> run/debug -> propose smallest fix -> recompile -> pass/fail.
+
+### Lava neuromorphic lane
+- A local Lava-ready event plane is now active through `lava_event_orchestrator.py`.
+- Intel Lava itself remains disabled by default; no Loihi dependency is installed or required for the current control-plane tests.
+- This workstation is the intended AEGIS control plane; another machine can become the Lava/Loihi build host.
+- The first local backend is KQML event recording, GC/SOAP state capture, and Fabric wisdom reinforcement for passing candidates.
+- The remote path comes later through KQML over SSH or another approved transport.
+- Web UI visibility is exposed under the testing/training panel and API visibility is exposed through `/api/lava/status` and `/api/lava/events`.
+
+### Context policy
+- Context and reply sizing now have one effective source of truth: `context_policy.py` reading the `AEGIS_*` environment variables.
+- `/api/context/policy` exposes the effective timeout, first-token timeout, context windows, and response budgets.
+- Launcher and template files should mirror those names only; do not add competing context-window knobs in another layer.
+
+### Scientific-method next variables
+- Variable 1: wire one real Aider outline into one genetic-coder job and compare against the smoke baseline.
+- Variable 2: add GitHub/web crawl snippets as `SourceSnippetSet` and measure whether candidate fitness improves.
+- Variable 3: test the Lava event recorder/status path, then CPU-simulation status/probe after confirmation, then remote Loihi build-host transport.
+- Variable 4: add one language adapter at a time, starting with the smallest compile/debug path before D8/APK or binary decompile work.
+
+### Known deficiencies
+- Full SOAP/LoRA training is not implemented yet; current SOAP behavior is heuristic-weight adaptation.
+- Binary debugger integration is defined but not fully connected to Binary Ninja/Vector35 yet.
+- The genetic coder is Python-first today.
+- Aider plus local Ollama is functional but still slower and less predictable than raw Ollama chat.
+
 ## 📊 Current Configuration
 
 ### System Components (Per Blueprint)
@@ -69,7 +115,7 @@
 
 3. **Install Ollama models**:
    ```bash
-   ollama pull gemma2:2b
+   ollama create aegis-gemma2-abliterated:2b-q8 -f vendor/models/Modelfile.gemma2-abliterated-q8
    ollama pull nomic-embed-text
    ```
 
@@ -187,6 +233,21 @@
 
 ---
 
-**Last Updated**: 2026-04-17  
-**Status**: Setup in Progress  
+**Last Updated**: 2026-04-29
+**Status**: Phase 2 Fabric JSON update active
+
+## Phase 2 Additions
+
+- Fabric templates are now JSON-first under `fabric_templates/`.
+- Fabric guidance includes the separate tool-context rule: tools run outside the main GUI context and return compressed evidence.
+- Fabric now acts as a tiny performative SOP/lens selector; DB/vector stores nominal facts, evidence, citations, and measured outcomes.
+- Adaptive Fabric selection is limited to one or two active SOPs per conversation. Coding asks select coding/build/genetic/compiler SOPs; casual chat selects natural conversation.
+- Vector search defaults to lexical-first live lookup to avoid competing with Ollama generation for semantic embeddings. Semantic vectors remain stored for deeper retrieval.
+- Vector writes now also default to lexical-first on live chat turns (`AEGIS_VECTOR_SEMANTIC_WRITE_ENABLED=0`) so post-reply indexing does not wake `nomic-embed-text` and look like the model is still replying.
+- Claude-distilled reasoning is registered as a low-weight indexed reference lane for logic/STEM/math/computing/programming, not a live model swap.
+- Runtime timeout/error traces are recorded in `runtime_traces`.
+- RAM working memory now keeps the last 20 replies by default.
+- The 26B-A4B Q8 Ollama pull was paused during speed debugging; the live Web UI remains on the stable abliterated local model.
+- Added `ai_runtime_parts_sop_pack.json` with tiny Fabric SOPs for live stream completion, post-reply indexing, Aider, LAVA event recording, SOAP, research, system-variable performance tracing, and 50-phase optimization.
+- Smoke test after restart: `/api/aegis/chat` returned a visible reply in about 19.8s; Ollama CPU was 0 at 5s and 25s after completion. Aider is installed and reachable as `aider 0.86.2`.
 **Version**: 3.8.1

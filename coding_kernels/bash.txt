@@ -1,0 +1,18 @@
+Shape:
+- strict mode when safe
+- small functions
+- quote variables
+- keep external deps obvious
+
+Files:
+- main.sh
+- tests/test_*.sh
+
+Verify:
+- bash -n
+- then run script
+
+Avoid:
+- unquoted expansions
+- silent fallthrough
+- parsing JSON with grep when a parser is available

@@ -1,0 +1,51 @@
+{
+  "template": {
+    "name": "logic_axioms",
+    "schema_version": "fabric-json-v1",
+    "description": "Axiomatic reasoning and set-theory decomposition template.",
+    "objective": "Convert ambiguous asks into explicit variables, constraints, falsifiable tests, and evidence gates.",
+    "keywords": [
+      "axiom",
+      "constraint",
+      "evidence",
+      "hypothesis",
+      "logic",
+      "math",
+      "reasoning",
+      "scientific",
+      "set",
+      "variable",
+      "zfc"
+    ],
+    "heuristics": [
+      "define_variables",
+      "one_variable_at_a_time",
+      "falsifiable_tests",
+      "evidence_gate"
+    ],
+    "constraints": {
+      "undefined_variables": "reject",
+      "contradictions": "reject",
+      "tool_context": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI."
+    },
+    "metrics": {
+      "variable_coverage": "complete",
+      "testability": "high",
+      "contradiction_count": 0
+    },
+    "sop": [
+      "Define variables before using them.",
+      "Separate AskSet from ConstraintSet and EvidenceSet.",
+      "Change one tested variable at a time when optimizing behavior.",
+      "Reject claims that contradict evidence or lack a pass/fail test."
+    ],
+    "tool_context_rule": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI.",
+    "information_hierarchy": {
+      "input": "user ask",
+      "workspace": "LAVA scratch context",
+      "fabric": "weighted wisdom template",
+      "vector_db": "citation/evidence recall",
+      "output": "natural GUI reply plus evidence summary"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+Shape:
+- pure functions first
+- I/O at edges
+- side effects only in main guard
+- public functions typed
+
+Files:
+- app.py or package/module.py
+- tests/test_*.py
+
+Verify:
+- pytest first
+- unittest fallback
+
+Avoid:
+- prose instead of code
+- hidden globals
+- broad except
+- import-time execution
+
+Snippets:
+- def main(argv: list[str] | None = None) -> int:
+- if __name__ == "__main__": raise SystemExit(main())

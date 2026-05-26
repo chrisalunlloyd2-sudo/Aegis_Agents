@@ -1,0 +1,9 @@
+Rules:
+- Prefer Flat Java for D8/Termux: named classes, direct handlers, explicit files.
+- Avoid anonymous inner classes, lambdas, hidden Runnables, reflection-heavy glue, and dependency-heavy wrappers.
+- Build the smallest installable APK slice before adding features.
+- Keep manifest, activity code, resources, and build commands explicit.
+
+Verification:
+- Check javac/D8 availability before assuming Android build support.
+- Record exact D8/javac command, output, and generated artifact path.

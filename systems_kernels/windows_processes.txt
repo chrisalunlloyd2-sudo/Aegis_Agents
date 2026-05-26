@@ -1,0 +1,10 @@
+Rules:
+- Inspect before terminating or restarting processes.
+- Distinguish cumulative CPU time from current CPU load.
+- Prefer process name, PID, command line, working directory, and memory before action.
+- Never kill explorer, security services, database services, or model runtimes unless explicitly approved.
+- For responsiveness, report RAM used/free, top AI/runtime processes, and one likely bottleneck.
+
+Verification:
+- Use current process evidence, not stale memory.
+- If a restart is needed, restart the narrowest service and verify the port or PID changed.

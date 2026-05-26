@@ -1,6 +1,6 @@
 """
 Agentic Loop Controller v1.0
-- Multi-step task decomposition (Plan → Execute → Evaluate → Summarize)
+- Multi-step task decomposition (Plan -> Execute -> Evaluate -> Summarize)
 - Asynchronous background execution with job tracking
 - Recursive summarization to prevent context drift
 - Integration with crawler database
@@ -68,6 +68,8 @@ class AgenticLoopController:
     def _load_jobs(self):
         """Load existing jobs from disk"""
         for job_file in self.jobs_dir.glob("*.json"):
+            if job_file.name.endswith(".corrupt.json"):
+                continue
             try:
                 with open(job_file, 'r', encoding='utf-8') as f:
                     job_data = json.load(f)
@@ -88,7 +90,12 @@ class AgenticLoopController:
                 )
                 self.active_jobs[job.job_id] = job
             except Exception as e:
-                print(f"⚠️ Skipping unreadable job file {job_file.name}: {e}")
+                corrupt_path = job_file.with_suffix(".corrupt.json")
+                try:
+                    job_file.replace(corrupt_path)
+                except OSError:
+                    pass
+                print(f"[WARN] Skipping unreadable job file {job_file.name}: {e}")
     
     def _subtask_to_dict(self, subtask: SubTask) -> Dict:
         return {
@@ -110,6 +117,7 @@ class AgenticLoopController:
     def _save_job(self, job: AgenticJob):
         """Save job to disk"""
         job_file = self.jobs_dir / f"{job.job_id}.json"
+        temp_file = self.jobs_dir / f"{job.job_id}.tmp"
         
         # Convert to dict
         job_dict = {
@@ -127,8 +135,9 @@ class AgenticLoopController:
         }
         
         with self.lock:
-            with open(job_file, 'w', encoding='utf-8') as f:
+            with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(job_dict, f, indent=2)
+            temp_file.replace(job_file)
     
     def create_job(self, description: str, task_decomposer: Callable[[str], List[str]]) -> str:
         """
@@ -169,7 +178,7 @@ class AgenticLoopController:
             self.active_jobs[job_id] = job
             self._save_job(job)
         
-        print(f"✅ Created job {job_id}: {description}")
+        print(f"[OK] Created job {job_id}: {description}")
         print(f"   Decomposed into {len(subtasks)} subtasks")
         
         return job_id
@@ -189,17 +198,17 @@ class AgenticLoopController:
         
         existing_thread = self.job_threads.get(job_id)
         if existing_thread and existing_thread.is_alive():
-            print(f"⚠️ Job {job_id} is already running")
+            print(f"[WARN] Job {job_id} is already running")
             return
         
         if job.status == TaskStatus.COMPLETED:
-            print(f"⚠️ Job {job_id} is already completed")
+            print(f"[WARN] Job {job_id} is already completed")
             return
         
         if job.status == TaskStatus.FAILED:
             remaining = [st for st in job.subtasks if st.status != TaskStatus.COMPLETED]
             if not remaining:
-                print(f"⚠️ Job {job_id} has no remaining work")
+                print(f"[WARN] Job {job_id} has no remaining work")
                 return
         
         # Start background thread
@@ -211,12 +220,12 @@ class AgenticLoopController:
         self.job_threads[job_id] = thread
         thread.start()
         
-        print(f"🚀 Started job {job_id} in background")
+        print(f"[RUN] Started job {job_id} in background")
     
     def _execute_job_loop(self, job_id: str, executor: Callable[[SubTask], str]):
         """
         Main execution loop (runs in background thread)
-        Implements: Plan → Execute → Evaluate → Summarize
+        Implements: Plan -> Execute -> Evaluate -> Summarize
         """
         job = self.active_jobs[job_id]
         with self.lock:
@@ -226,7 +235,7 @@ class AgenticLoopController:
             self._save_job(job)
         
         print(f"\n{'='*60}")
-        print(f"🎯 STARTING AGENTIC LOOP: {job.description}")
+        print(f"[RUN] STARTING AGENTIC LOOP: {job.description}")
         print(f"{'='*60}\n")
         
         for i in range(job.current_step, job.total_steps):
@@ -243,7 +252,7 @@ class AgenticLoopController:
             
             job.current_step = i + 1
             
-            print(f"\n📍 Step {job.current_step}/{job.total_steps}: {subtask.description}")
+            print(f"\n[STEP] {job.current_step}/{job.total_steps}: {subtask.description}")
             
             # EXECUTE
             subtask.status = TaskStatus.RUNNING
@@ -262,21 +271,21 @@ class AgenticLoopController:
                         subtask.status = TaskStatus.COMPLETED
                         subtask.completed_at = datetime.now().isoformat()
                         success = True
-                        print(f"   ✅ Completed: {result[:100]}...")
+                        print(f"   [OK] Completed: {result[:100]}...")
                     else:
                         raise Exception("Result evaluation failed")
                 
                 except Exception as e:
                     subtask.retry_count += 1
                     subtask.error = str(e)
-                    print(f"   ⚠️ Retry {subtask.retry_count}/{self.max_retries}: {e}")
+                    print(f"   [WARN] Retry {subtask.retry_count}/{self.max_retries}: {e}")
                     time.sleep(2)
             
             if not success:
                 subtask.status = TaskStatus.FAILED
                 job.status = TaskStatus.FAILED
                 self._save_job(job)
-                print(f"   ❌ Failed after {self.max_retries} retries")
+                print(f"   [FAIL] Failed after {self.max_retries} retries")
                 return
             
             # RECURSIVE SUMMARIZATION (every N steps)
@@ -293,7 +302,7 @@ class AgenticLoopController:
         self._save_job(job)
         
         print(f"\n{'='*60}")
-        print(f"🎉 JOB COMPLETED: {job.job_id}")
+        print(f"[DONE] JOB COMPLETED: {job.job_id}")
         print(f"{'='*60}\n")
     
     def _evaluate_result(self, result: str) -> bool:
@@ -315,7 +324,7 @@ class AgenticLoopController:
         for st in recent:
             summary_parts.append(f"- {st.description}: {st.result[:100] if st.result else 'N/A'}...")
         
-        summary = f"\n📝 RECURSIVE SUMMARY (Steps {job.current_step - len(recent) + 1}-{job.current_step}):\n"
+        summary = f"\n[SUMMARY] Steps {job.current_step - len(recent) + 1}-{job.current_step}:\n"
         summary += "\n".join(summary_parts)
         
         job.summary = summary
@@ -357,8 +366,19 @@ Duration: {duration}
         
         job = self.active_jobs[job_id]
         current_subtask = None
-        if 0 < job.current_step <= job.total_steps:
+        if job.status == TaskStatus.RUNNING and 0 < job.current_step <= job.total_steps:
             current_subtask = job.subtasks[job.current_step - 1].description
+
+        failed_steps = [
+            {
+                "step": i + 1,
+                "description": st.description,
+                "error": st.error,
+                "retry_count": st.retry_count,
+            }
+            for i, st in enumerate(job.subtasks)
+            if st.status == TaskStatus.FAILED
+        ]
         
         return {
             "job_id": job.job_id,
@@ -367,6 +387,8 @@ Duration: {duration}
             "progress": f"{job.current_step}/{job.total_steps}",
             "current_subtask": current_subtask,
             "summary": job.summary,
+            "final_result": job.final_result,
+            "failed_steps": failed_steps,
             "created_at": job.created_at,
             "started_at": job.started_at,
             "completed_at": job.completed_at
@@ -413,7 +435,7 @@ Duration: {duration}
             if job.status not in {TaskStatus.COMPLETED, TaskStatus.FAILED}:
                 job.status = TaskStatus.PAUSED
                 self._save_job(job)
-                print(f"⏸️ Paused job {job_id}")
+                print(f"[PAUSE] Paused job {job_id}")
     
     def resume_job(self, job_id: str, executor: Callable[[SubTask], str]):
         """Resume a paused job"""
@@ -423,7 +445,7 @@ Duration: {duration}
                 job.status = TaskStatus.PENDING
                 self._save_job(job)
                 self.execute_job_async(job_id, executor)
-                print(f"▶️ Resumed job {job_id}")
+                print(f"[RESUME] Resumed job {job_id}")
 
 # Global instance
 agentic_controller = AgenticLoopController()

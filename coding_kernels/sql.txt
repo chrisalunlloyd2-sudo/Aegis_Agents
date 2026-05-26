@@ -1,0 +1,15 @@
+Shape:
+- declare source tables clearly
+- keep joins readable
+- filter early
+- name outputs intentionally
+
+Verify:
+- include schema assumptions
+- include example rows or expected result shape
+
+Avoid:
+- SELECT *
+- ambiguous column names
+- hidden cross joins
+- vendor-specific syntax unless requested

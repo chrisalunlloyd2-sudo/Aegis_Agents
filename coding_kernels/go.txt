@@ -1,0 +1,19 @@
+Shape:
+- small packages
+- explicit errors
+- structs for data
+- table-driven tests
+
+Files:
+- main.go
+- *_test.go
+- go.mod
+
+Verify:
+- go test ./...
+- go run .
+
+Avoid:
+- hidden globals
+- panic for normal flow
+- interface abstraction before it is needed

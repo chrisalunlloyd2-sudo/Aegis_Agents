@@ -1,0 +1,54 @@
+{
+  "template": {
+    "name": "webcrawl_data_retrieval",
+    "schema_version": "fabric-json-v1",
+    "description": "Advanced webcrawl and retrieval pipeline template.",
+    "objective": "Crawl, parse, cite, distill, and transform external research into code-ready evidence.",
+    "keywords": [
+      "citation",
+      "crawl",
+      "data",
+      "fabric",
+      "hyperlocal",
+      "paper",
+      "parse",
+      "retrieval",
+      "scrape",
+      "thesis",
+      "vector",
+      "webcrawl"
+    ],
+    "heuristics": [
+      "official_sources_first",
+      "chunk_then_cite",
+      "distill_to_fabric",
+      "full_evidence_to_vector"
+    ],
+    "constraints": {
+      "source_quality": "high",
+      "citation_required": true,
+      "privacy": "no credentials, no private scraping targets",
+      "tool_context": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI."
+    },
+    "metrics": {
+      "corroboration": "required",
+      "duplicate_rate": "low",
+      "evidence_density": "high"
+    },
+    "sop": [
+      "Search official or high-signal sources first.",
+      "Crawl pages into chunks with URL, domain, timestamp, and credibility.",
+      "Parse into thesis summary, algorithm notes, code patterns, and citations.",
+      "Store full evidence in vector DB; store only distilled rules in Fabric.",
+      "Reject low-correlation chunks and duplicated SEO text during pruning."
+    ],
+    "tool_context_rule": "Do not tool call in the main context window. Route tool calls through a separate tool window/context packet and return only compressed evidence to the GUI.",
+    "information_hierarchy": {
+      "input": "user ask",
+      "workspace": "LAVA scratch context",
+      "fabric": "weighted wisdom template",
+      "vector_db": "citation/evidence recall",
+      "output": "natural GUI reply plus evidence summary"
+    }
+  }
+}

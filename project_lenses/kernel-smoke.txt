@@ -1,0 +1,1 @@
+Build a PowerShell script to inspect RAM and export JSON. Keep it concise and runnable.

@@ -1,0 +1,19 @@
+Shape:
+- one advanced function or clear script entry
+- parameters explicit
+- pipeline-safe where useful
+- output objects, not prose
+
+Files:
+- main.ps1
+- tests/*.Tests.ps1
+
+Verify:
+- parse syntax first
+- then run main script
+
+Avoid:
+- Write-Host for machine-readable output
+- implicit globals
+- unquoted paths with spaces
+- swallowing errors

@@ -1,0 +1,19 @@
+Shape:
+- model data with interfaces or types
+- narrow unions early
+- keep runtime simple
+- type-check before polish
+
+Files:
+- src/index.ts
+- tests/*.test.ts
+- tsconfig.json
+
+Verify:
+- tsc --noEmit
+- node tests if runtime supports them
+
+Avoid:
+- any by default
+- ambient magic
+- type assertions hiding real bugs

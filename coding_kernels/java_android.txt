@@ -1,0 +1,7 @@
+Android Java / D8 kernel:
+- Use Flat Java: explicit named classes and methods; avoid anonymous inner classes, lambdas, hidden Runnables, and reflection-heavy glue.
+- Keep Activity, Service, and worker responsibilities separated by file when possible.
+- Make AndroidManifest.xml permissions, exported flags, labels, and entry points explicit.
+- Minimize dependencies so javac and D8 can compile on small runtimes such as Termux.
+- Extract device flags, permissions, and hardware constants into named constants.
+- Verification path: provide exact javac/D8 commands when tools exist; otherwise state the missing SDK/tool blocker plainly.

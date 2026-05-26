@@ -1,0 +1,14 @@
+JSON/YAML:
+- keep keys stable
+- validate shape
+- choose explicit names
+- show one valid example
+
+Regex:
+- state what should match
+- state what should not match
+- keep captures intentional
+
+Avoid:
+- huge unreadable one-liners without examples
+- relying on ordering unless format guarantees it

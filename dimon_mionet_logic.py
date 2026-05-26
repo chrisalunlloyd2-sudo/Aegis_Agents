@@ -7,10 +7,17 @@ import torch.nn as nn
 import torch.optim as optim
 import ast
 import numpy as np
-import psycopg2
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+
+from manifold_db import manifold_db
+from vector_memory import vector_memory
+
+try:
+    import psycopg2
+except Exception:
+    psycopg2 = None
 
 load_dotenv()
 
@@ -75,7 +82,8 @@ class DIMONLogicEngine:
 
     def _get_timescale_conn(self):
         import urllib.parse as urlparse
-        if not self.db_url or not self.db_url.startswith("postgresql"): return None
+        if not psycopg2 or not self.db_url or not self.db_url.startswith("postgresql"):
+            return None
         try:
             result = urlparse.urlparse(self.db_url)
             return psycopg2.connect(
@@ -90,33 +98,45 @@ class DIMONLogicEngine:
 
     def extract_topology(self, source_code):
         """Extracts AST metrics as the 'Shape' of the manifold"""
-        tree = ast.parse(source_code)
-        nodes = list(ast.walk(tree))
-        max_depth = 0
-        def get_depth(node, current_depth):
-            nonlocal max_depth
-            max_depth = max(max_depth, current_depth)
-            for child in ast.iter_child_nodes(node):
-                get_depth(child, current_depth + 1)
-        get_depth(tree, 0)
-        
-        # Feature vector: [Nodes, Depth, Complexity (approx as nodes/depth)]
-        shape_vec = torch.tensor([[len(nodes), max_depth, len(nodes)/(max_depth or 1)]], dtype=torch.float32)
-        
-        # Coordinate set for Trunk: [NodeIndex, NodeDepth]
-        # For simplicity, we sample the first 100 nodes
-        coords = []
-        for i, node in enumerate(nodes[:100]):
-            coords.append([i, 1.0]) # Simplified coordinate mapping
-        coords = torch.tensor(coords, dtype=torch.float32)
-        
-        return shape_vec, coords
+        try:
+            tree = ast.parse(source_code)
+            nodes = list(ast.walk(tree))
+            max_depth = 0
 
-    def learn_operator(self, source_name, source_code, input_embedding):
+            def get_depth(node, current_depth):
+                nonlocal max_depth
+                max_depth = max(max_depth, current_depth)
+                for child in ast.iter_child_nodes(node):
+                    get_depth(child, current_depth + 1)
+
+            get_depth(tree, 0)
+            shape_vec = torch.tensor([[len(nodes), max_depth, len(nodes) / (max_depth or 1)]], dtype=torch.float32)
+            coords = torch.tensor([[i, 1.0] for i, _node in enumerate(nodes[:100])], dtype=torch.float32)
+            return shape_vec, coords, len(nodes), max_depth
+        except SyntaxError:
+            tokens = [token for token in source_code.split() if token.strip()]
+            lines = [line for line in source_code.splitlines() if line.strip()]
+            token_count = max(1, len(tokens))
+            line_count = max(1, len(lines))
+            avg_line_length = max(1.0, float(sum(len(line) for line in lines) / line_count)) if lines else 1.0
+            shape_vec = torch.tensor([[token_count, line_count, avg_line_length]], dtype=torch.float32)
+            coords = torch.tensor([[i, 1.0] for i in range(min(token_count, 100))], dtype=torch.float32)
+            return shape_vec, coords, token_count, line_count
+
+    def learn_operator(
+        self,
+        source_name,
+        source_code,
+        input_embedding,
+        *,
+        project=None,
+        session_id=None,
+        manifold_kind="logic",
+    ):
         """
         Executes the Diffeomorphic Mapping and Operator Learning.
         """
-        shape_vec, coords = self.extract_topology(source_code)
+        shape_vec, coords, ast_nodes, structural_depth = self.extract_topology(source_code)
         input_vec = torch.tensor(input_embedding, dtype=torch.float32).unsqueeze(0)
         
         # Forward pass: Operator Synthesis
@@ -130,50 +150,67 @@ class DIMONLogicEngine:
             
             logic_manifold = b_s * b_i * t_o
             logic_signature = torch.sum(logic_manifold).item()
+            variance_score = float(torch.var(logic_manifold).item())
 
         print(f"[DIMON] Learned Operator for '{source_name}': {logic_signature:.6f}")
-        self._persist_to_timescale(source_name, logic_manifold, logic_signature)
-        return logic_signature
+        self._persist_to_timescale(
+            source_name,
+            logic_manifold,
+            logic_signature,
+            ast_nodes=ast_nodes,
+            structural_depth=structural_depth,
+            variance_score=variance_score,
+            project=project,
+            session_id=session_id,
+            manifold_kind=manifold_kind,
+        )
+        return {
+            "signature": float(logic_signature),
+            "variance_score": variance_score,
+            "ast_nodes": ast_nodes,
+            "structural_depth": structural_depth,
+        }
 
-    def _persist_to_timescale(self, source, manifold, signature):
+    def _persist_to_timescale(
+        self,
+        source,
+        manifold,
+        signature,
+        *,
+        ast_nodes=0,
+        structural_depth=0,
+        variance_score=None,
+        project=None,
+        session_id=None,
+        manifold_kind="logic",
+    ):
         """Persists to TimescaleDB or SQLite Fallback (Unified Manifold)"""
-        conn = self._get_timescale_conn()
-        
-        # 1. TIMESCALEDB PATH
-        if conn:
-            try:
-                cur = conn.cursor()
-                manifold_blob = manifold.numpy().tobytes()
-                cur.execute("""
-                    INSERT INTO neural_manifolds 
-                    (source_origin, ast_nodes, structural_depth, canonical_coords, operator_signature)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (source, manifold.shape[1], 0, manifold_blob, f"LOGIC_{signature:.4f}"))
-                conn.commit()
-                cur.close()
-                conn.close()
-                print("✅ Persisted to TimescaleDB Hypertable.")
-                return
-            except Exception as e:
-                print(f"❌ TimescaleDB error: {e}")
-
-        # 2. SQLITE FALLBACK (NODE ALPHA PREP)
-        print("[DIMON] Routing manifold to local SQLite fallback...")
         try:
-            import sqlite3
-            sqlite_conn = sqlite3.connect('C:/Users/viper/gemini_bridge.db')
-            cur = sqlite_conn.cursor()
-            manifold_blob = manifold.numpy().tobytes()
-            cur.execute("""
-                INSERT INTO neural_manifolds 
-                (source_origin, ast_nodes, structural_depth, canonical_coords, operator_signature, timestamp)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (source, manifold.shape[1], 0, str(manifold_blob), f"LOGIC_{signature:.4f}", datetime.utcnow()))
-            sqlite_conn.commit()
-            sqlite_conn.close()
-            print("✅ Persisted to Local Unified SQL Manifold (SQLite).")
+            manifold_db.persist_neural_manifold(
+                source_origin=source,
+                canonical_coords=manifold,
+                operator_signature=f"LOGIC_{signature:.4f}",
+                ast_nodes=ast_nodes,
+                structural_depth=structural_depth,
+                variance_score=variance_score,
+                project=project,
+                session_id=session_id,
+                manifold_kind=manifold_kind,
+                metadata={"source": "dimon_mionet_logic"},
+            )
+            print("[OK] Persisted to unified ManifoldDB.")
         except Exception as e:
-            print(f"❌ SQLite Fallback error: {e}")
+            print(f"[ERROR] ManifoldDB persistence error: {e}")
+
+    def distill_directory_signature(self, source_name, summary_text, input_embedding=None, project=None):
+        embedding = input_embedding or vector_memory.manifold_embed(summary_text)
+        return self.learn_operator(
+            source_name,
+            summary_text,
+            embedding,
+            project=project,
+            manifold_kind="directory_signature",
+        )
 
 if __name__ == "__main__":
     engine = DIMONLogicEngine()

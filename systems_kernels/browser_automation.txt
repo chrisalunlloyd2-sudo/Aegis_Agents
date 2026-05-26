@@ -1,0 +1,9 @@
+Rules:
+- Use browser automation only for GUI/web tasks that cannot be solved by API or file access.
+- Start with the current URL, allowed domains, headless setting, and max steps.
+- Do not enter credentials unless the user explicitly approves that run.
+- Capture observations as step logs, screenshots, or DOM summaries when possible.
+
+Verification:
+- Confirm the page loaded, the target element was found, and the final state changed.
+- On failure, return the selector, URL, and last visible page state.

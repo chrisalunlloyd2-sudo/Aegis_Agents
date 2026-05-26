@@ -7,16 +7,16 @@ All components have been verified and configured according to the blueprint:
 ### What's Been Done:
 1. ✅ **All Python packages installed** - FastAPI, Ollama, Qdrant, DSPy, etc.
 2. ✅ **.env file created** - Your Gemini API key is configured
-3. ✅ **Ollama models verified** - gemma2:2b, codegemma:2b, nomic-embed-text ready
+3. ✅ **Ollama models verified** - aegis-gemma2-abliterated:2b-q8, qwen2.5-coder:1.5b, nomic-embed-text ready
 4. ✅ **Database initialized** - SQLite with WAL mode + consistency.db
 5. ✅ **System checks passed** - All components operational
 6. ✅ **Launch script enhanced** - AEGIS_Launch.bat runs full system checks
 
 ### Your Models:
-- **gemma2:2b** - Primary local model (1.6 GB)
-- **codegemma:2b** - Code-specialized model (1.6 GB)  
+- **aegis-gemma2-abliterated:2b-q8** - Primary coordinator and code model (2.8 GB)
+- **qwen2.5-coder:1.5b** - Tiny worker lane when needed
 - **nomic-embed-text** - Embedding model for RAG (274 MB)
-- Plus 13 other models available!
+- Plus several other local models available
 
 ## 🚀 How to Start
 

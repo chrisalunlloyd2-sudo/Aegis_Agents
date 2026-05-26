@@ -1,0 +1,19 @@
+Shape:
+- semantic HTML first
+- layout in CSS, not inline hacks
+- mobile-first
+- accessible labels and structure
+
+Files:
+- index.html
+- styles.css
+
+Verify:
+- valid structure
+- keyboard reachability
+- responsive layout
+
+Avoid:
+- div soup
+- fixed desktop-only sizing
+- inline style sprawl

@@ -1,0 +1,9 @@
+Rules:
+- Use one stable workspace per build task.
+- Keep generated code, tests, reports, and logs together.
+- Prefer relative paths inside the workspace for generated artifacts.
+- Do not overwrite unrelated user files.
+
+Verification:
+- Report created/changed file paths.
+- Confirm expected files exist before claiming completion.

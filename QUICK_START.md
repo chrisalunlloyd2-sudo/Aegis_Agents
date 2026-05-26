@@ -1,211 +1,164 @@
 # AEGIS-DIMON Quick Start Guide
 
-## 🚀 Getting Started in 60 Seconds
+## Getting started in 60 seconds
 
 ### Prerequisites
-1. **Python 3.8+** installed
-2. **Ollama** installed and running
-3. **Gemini API Key** (optional - for cloud mode)
+1. Python 3.11+
+2. Ollama installed and running
+3. Local models available:
+   - `aegis-gemma2-abliterated:2b-q8`
+   - `qwen2.5-coder:1.5b`
+   - `nomic-embed-text:latest`
 
-### Quick Launch (Recommended)
+### Quick launch
 ```bash
-# Just run this - it handles everything!
 AEGIS_Launch.bat
 ```
 
-The launcher will:
-- ✅ Request admin privileges (approve UAC prompt)
-- ✅ Start Ollama with Gemma 2B
-- ✅ Initialize timescale memory system
-- ✅ Launch FastAPI backend
-- ✅ Create Cloudflare tunnel
-- ✅ Open browser to your public URL
+Default posture:
+- local-only blueprint
+- FastAPI backend on `5005`
+- coordinator model `aegis-gemma2-abliterated:2b-q8`
+- PicoClaw direct-first execution sidecar on `aegis-gemma2-abliterated:2b-q8`
+- tiny worker model `qwen2.5-coder:1.5b`
+- browser helper isolated through `browser-use`
+- remote lanes disabled unless you explicitly re-enable them
+- normal turns only inject a matching file from `project_lenses/<project>.txt` when one exists
+- the global `PROJECT_DIRECTIVE.txt` is now mainly for fallback defaults and automation flows
 
-### Manual Setup (Advanced)
+If `5005` is already taken:
+```powershell
+$env:AEGIS_PORT = "5006"
+.\AEGIS_Launch.bat
+```
 
-#### Step 1: Install Dependencies
+## Manual startup
+
+### 1. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-#### Step 2: Configure Environment
-1. Copy `.env.template` to `.env`:
-   ```bash
-   copy .env.template .env
-   ```
-2. Edit `.env` and add your Gemini API key (optional):
-   ```
-   GEMINI_API_KEY=your_actual_api_key_here
-   ```
-
-#### Step 3: Install Local Model
+### 2. Configure environment
 ```bash
-ollama pull gemma2:2b
+copy .env.template .env
 ```
 
-#### Step 4: Start the Server
+Important defaults in `.env`:
+- `AEGIS_LOCAL_ONLY=1`
+- `AEGIS_LOCAL_PRIMARY_MODEL=aegis-gemma2-abliterated:2b-q8`
+- `AEGIS_LOCAL_CODE_MODEL=aegis-gemma2-abliterated:2b-q8`
+- `AEGIS_LOCAL_TOOL_MODEL=qwen2.5-coder:1.5b`
+- `AEGIS_PICOCLAW_MODEL=aegis-gemma2-abliterated:2b-q8`
+- `AEGIS_BROWSER_USE_MODEL=aegis-gemma2-abliterated:2b-q8`
+
+### 3. Install missing local models if needed
 ```bash
-python -m uvicorn gemini_bridge_api_fast:app --host 0.0.0.0 --port 5005
+ollama pull qwen2.5-coder:1.5b
+ollama pull nomic-embed-text
+ollama create aegis-gemma2-abliterated:2b-q8 -f vendor/models/Modelfile.gemma2-abliterated-q8
 ```
 
-## 🎯 Access Points
-
-- **Web UI**: http://localhost:5005/ui
-- **API Health**: http://localhost:5005/api/health
-- **API Docs**: http://localhost:5005/docs
-
-## 🧠 Usage Modes
-
-### Local Mode (Gemma 2B)
-```
-/local your prompt here
-```
-
-### Cloud Mode (Gemini)
-Just type your prompt normally - it will use Gemini API
-
-### Research Mode
-```
-/research your research topic
-```
-
-## 📊 System Architecture
-
-### Core Components:
-
-1. **Engine.py** - Master process orchestrator
-2. **gemini_bridge_api_fast.py** - FastAPI server with timescale memory
-3. **DIMON_CORE_DISTILLED.py** - Neural manifold mapper
-4. **timescale_memory.py** - Revolutionary file-based memory system
-5. **aegis_ui_clone.html** - Web interface
-
-### 🧠 NEW: Timescale Memory System
-
-**Replaces traditional vector RAG with hierarchical time-series files:**
-
-- ✅ **Boolean Logic Only** - No NLP overhead
-- ✅ **5KB Max Per File** - 60 heartbeat files per hour
-- ✅ **Indexed Search** - Fast lookups without vectors
-- ✅ **Daily Secrets** - Secure API/variable storage
-- ✅ **Weekly Summaries** - Auto-compressed to 1KB
-
-**Memory Structure:**
-```
-C:/Users/viper/Aegis_Memory/
-├── session_id/subject/date/hour/
-│   └── timestamp_hb01.txt (5KB max)
-├── secrets/secrets_2026-04-17.json
-├── weekly_summaries/summary_2026-W16.txt
-└── feelings/feelings_2026-W16.txt (1KB)
-```
-
-## 🔧 Troubleshooting
-
-### UAC Prompt Appears
-- **Normal behavior** - Ollama needs admin privileges
-- Click "Yes" to allow elevated permissions
-- Required for hardware access
-
-### Ollama Not Starting
+### 4. Start the backend
 ```bash
-# Manually start with admin:
-Run as Administrator: C:\Program Files\Ollama\ollama.exe serve
+python gemini_bridge_api_fast.py
 ```
 
-### Memory System Offline
-```bash
-# Check memory path
-dir C:\Users\viper\Aegis_Memory
-# System auto-creates on first run
+## Access points
+
+- Web UI: `http://localhost:5005/ui`
+- Health: `http://localhost:5005/api/health`
+- Docs: `http://localhost:5005/docs`
+- Lens update route: `http://localhost:5005/api/lens/update`
+- Aider status: `http://localhost:5005/api/aider/status`
+- Genetic coder jobs: `http://localhost:5005/api/genetic-coder/jobs`
+- Lava event status: `http://localhost:5005/api/lava/status`
+- Lava event log: `http://localhost:5005/api/lava/events`
+- Context policy: `http://localhost:5005/api/context/policy`
+
+## What is running today
+
+Core path:
+- `gemini_bridge_api_fast.py` for the main local API
+- `gemma_tools.py` for routing and tool policy
+- `aegis_toolkit.py` for the registered tool surface
+- `timescale_memory.py`, `vector_memory.py`, and `gemini_bridge.db` for local memory and persistence
+
+Coordinator and worker split:
+- the main model plans, routes, and provisions step blocks
+- the tiny PicoClaw worker receives ACL/KQML-style task packets
+- the tiny worker is stateless and does not need DB coupling to run code or verification tasks
+
+Sidecars:
+- `delegate_picoclaw` for tiny code insertion and verification tasks
+- `browser_use_task` for browser and GUI automation only
+- Aider terminal lane for recorded coding-agent output
+- heuristic genetic coder for compile/test/debugger-evidence/fitness loops
+- Lava-ready event plane for KQML/GC/SOAP recording and Fabric wisdom reinforcement
+- Intel Lava package and Loihi hardware lane are still disabled until separately installed and tested
+
+Notes:
+- Activepieces is the preferred visual orchestration path if you later want editable workflows and approval gates.
+- OpenAI/Codex escalation is intentionally off by default and not required for normal local operation.
+
+## Troubleshooting
+
+### Check Fabric JSON and timeout traces
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5005/api/fabric/wisdom/status
+Invoke-RestMethod http://127.0.0.1:5005/api/runtime-traces/recent
 ```
 
-### API 500 Errors
-```bash
-# Clear Python cache
-Remove-Item -Recurse -Force __pycache__
-# Restart server
+### Check whether the 26B-A4B Q8 model finished downloading
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5005/api/health | ConvertTo-Json -Depth 6
+Get-Content logs\ollama_gemma4_26b_q8_pull.log -Tail 20
 ```
 
-### Database Locked
-- Close any other instances of the application
-- Delete `gemini_bridge.db-shm` and `gemini_bridge.db-wal` if needed
-
-### Port Already in Use
+### Port already in use
 ```bash
-# Change port in command:
 python -m uvicorn gemini_bridge_api_fast:app --port 5006
 ```
 
-### Cloudflare Tunnel Fails
-```bash
-# Check tunnel log
-type C:\Users\viper\tunnel.log
-# Restart AEGIS_Launch.bat
+### Database looks locked
+- Close duplicate AEGIS backends first.
+- Then delete `gemini_bridge.db-shm` and `gemini_bridge.db-wal` only if the backend is fully stopped.
+
+### PicoClaw feels stuck
+- The native CLI path is still being hardened.
+- `delegate_picoclaw` will fall back to direct local Ollama chat when the native PicoClaw agent path stalls.
+
+### Browser automation feels slow
+- Keep `browser-use` tasks tight and browser-only.
+- Do not use it as the main orchestrator for coding or system-wide loops.
+
+### API 500s after edits
+```powershell
+Remove-Item -Recurse -Force __pycache__
+python gemini_bridge_api_fast.py
 ```
 
-## 📝 Key Features
+## Upgrade path
 
-- ✅ Hybrid AI (Cloud Gemini + Local Gemma)
-- ✅ Automatic failover on API limits
-- ✅ **NEW: Timescale Memory System** (replaces vector RAG)
-- ✅ Real-time streaming responses
-- ✅ DIMON neural manifold mapping
-- ✅ SQLite + WAL mode for persistence
-- ✅ Chain-of-Thought reasoning
-- ✅ Boolean logic compression
-- ✅ Weekly auto-summaries
-- ✅ Admin privileges for Ollama
+Near-term priorities:
+1. Stabilize native PicoClaw CLI behavior.
+2. Add acceptance-test gating to `local_program_loop.py`.
+3. Test the expanded long-reply budget through the Web UI.
+4. Test Lava event recording from a real genetic-coder run, then add Intel Lava as a CPU-simulation probe only after confirmation.
+5. Add the binary debugger adapter into the genetic coder `DebuggerSet` path.
+6. Reduce lens memory bleed in ambiguous debugging turns.
 
-## 🎓 Advanced Usage
+Later options:
+1. Add Activepieces for visual orchestration and approvals.
+2. Add Skyvern only if GUI-heavy automation outgrows `browser-use`.
+3. Add an optional OpenAI/Codex Responses API escalation lane for hard coding cases.
 
-### Custom Model Selection
-```python
-# In gemini_bridge_api_fast.py, modify:
-CHOOSER_MODEL = "gemma2:2b"  # Change to your preferred model
-```
+## Canonical docs
 
-### Database Configuration
-```python
-# In .env file:
-DATABASE_URL=sqlite:///gemini_bridge.db
-# Or use PostgreSQL/TimescaleDB:
-DATABASE_URL=postgresql://user:pass@localhost:5432/aegis
-```
-
-## 📚 Documentation
-
-- `README.md` - **Comprehensive system documentation**
-- `DIAGNOSTIC_REPORT.md` - System diagnostics and fixes
-- `AEGIS_MANIFOLD_BLUEPRINT.txt` - Architecture details
-- `TOOL_CALLING_GUIDE.md` - Tool usage guide
-
-## 🆘 Support
-
-If you encounter issues:
-1. Check `DIAGNOSTIC_REPORT.md` for known issues
-2. Review `api.log` for error messages
-3. Inspect memory files: `C:/Users/viper/Aegis_Memory`
-4. Ensure Ollama is running: `ollama list`
-5. Verify admin privileges were granted
-
-## 🎯 Quick Commands
-
-```bash
-# Start system
-AEGIS_Launch.bat
-
-# Check memory status
-python -c "from timescale_memory import memory; print(memory.base_path)"
-
-# Search memories
-python -c "from timescale_memory import memory; print(memory.search('keyword'))"
-
-# Create weekly summary
-python -c "from timescale_memory import memory; memory.create_weekly_summary()"
-
-# Clear old memories (30+ days)
-python -c "from timescale_memory import memory; memory.cleanup(days=30)"
-```
-
----
-**Made with 🇨🇦 by Viper** 🤖
+- `README.md`
+- `AEGIS_MANIFOLD_BLUEPRINT.txt`
+- `MANIFOLD_CHANGELOG.md`
+- `project_lenses/README.md`
+- `prompt_layer_archive/2026-04-21_cold_layers/README.md`

@@ -1,0 +1,38 @@
+{
+  "project": "general",
+  "phase": "phase1_core_architecture",
+  "complete": true,
+  "components": [
+    "single_template_compiler",
+    "template_versioning",
+    "template_rollback",
+    "performative_validator",
+    "semantic_selector",
+    "lava_buffer_limits",
+    "structured_step_log",
+    "dependency_tracker",
+    "objective_validator",
+    "benchmark_smoke_tests",
+    "emergency_stop"
+  ],
+  "tables": {
+    "templates": 3,
+    "template_versions": 3,
+    "rollbacks": 0,
+    "steps": 3,
+    "dependencies": 3,
+    "benchmarks": 3,
+    "objective_validations": 3
+  },
+  "emergency_stop": {
+    "project": "general",
+    "active": false,
+    "reason": ""
+  },
+  "rules": {
+    "single_compiled_template_per_chat": true,
+    "all_inputs_flow": "input -> LAVA -> Agent Core",
+    "prompt_injection": "disabled unless source explicitly active",
+    "public_checkpoint_policy": "secrets and generated runtime artifacts are excluded"
+  }
+}
