@@ -37,7 +37,7 @@ def initialize_dspy(model_name="gemini/gemini-1.5-pro"):
     if not api_key:
         print("❌ [DSPY] Missing API Key. Manifold cannot compile.")
         return None
-    
+
     # Configure the LM
     gemini = dspy.Google(model=model_name, api_key=api_key)
     dspy.settings.configure(lm=gemini)
