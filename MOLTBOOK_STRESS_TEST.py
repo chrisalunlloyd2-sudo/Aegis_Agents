@@ -71,14 +71,14 @@ def main():
     print("=" * 70)
     print("🛡️ AEGIS-DIMON: PROJECT MOLTBOOK STRESS TEST")
     print("=" * 70)
-    
+
     results = [
         test_fastapi_health(),
         test_database_wal(),
         test_vram_fencing(),
         test_manifold_persistence()
     ]
-    
+
     print("=" * 70)
     if all(results):
         print("🚀 STATUS: 100% SUCCESS. THE MANIFOLD IS STABILIZED.")

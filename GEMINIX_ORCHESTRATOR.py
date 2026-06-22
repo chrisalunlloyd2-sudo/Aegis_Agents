@@ -23,7 +23,7 @@ def get_timestamp():
 def run_diagnostic():
     """Runs a full system check and returns a summary list."""
     checks = []
-    
+
     # 1. Check Port 5005
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,7 +42,7 @@ def run_diagnostic():
             content = f.read()
             match = re.search(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", content)
             if match: url = match.group(0)
-    
+
     if url != "NOT_FOUND":
         checks.append(f"✅ Cloudflare Tunnel: ACTIVE ({url})")
     else:
@@ -89,7 +89,7 @@ def generate_report(checks, url):
 - **Local Port:** 5005
 
 ## 🧬 ALICE'S NOTES:
-Manifold has been purged and reignited. 
+Manifold has been purged and reignited.
 The 3GB VRAM lanes are fenced and monitored.
 The Hyper-Heartbeat is active in the background.
 
@@ -103,7 +103,7 @@ def main():
     print("=" * 70)
     print("           G E M I N I - X :  S M A R T   I G N I T I O N           ")
     print("=" * 70)
-    
+
     my_pid = os.getpid()
     # 1. Selective Purge
     print("[SHIELD] Purging manifold components...")
@@ -117,15 +117,15 @@ def main():
     print("[SHIELD] Igniting Node Alpha and Establishing Bridge...")
     # Use Popen to launch it detached
     subprocess.Popen([sys.executable, LAUNCHER_SCRIPT], creationflags=subprocess.CREATE_NEW_CONSOLE)
-    
+
     # 3. Wait for handshake
     print("[SHIELD] Waiting for 180-IQ Handshake (45s)...")
     time.sleep(45)
-    
+
     # 4. Diagnostic & Report
     checks, url = run_diagnostic()
     generate_report(checks, url)
-    
+
     print("=" * 70)
     print("IGNITION COMPLETE. Check your Desktop for the Status Report.")
     print("=" * 70)

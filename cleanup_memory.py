@@ -27,15 +27,15 @@ def show_index_stats():
         index_files = list(indexes_dir.glob("index_segment_*.json"))
         print(f"\n📊 Index Statistics:")
         print(f"   Total segments: {len(index_files)}")
-        
+
         total_size = 0
         for idx_file in index_files:
             size = idx_file.stat().st_size
             total_size += size
             print(f"   - {idx_file.name}: {size/1024:.1f} KB")
-        
+
         print(f"   Total size: {total_size/1024:.1f} KB")
-        
+
         if total_size > 100 * 1024:
             print("   ⚠️ WARNING: Indexes are large, consider cleanup")
         else:
@@ -44,24 +44,24 @@ def show_index_stats():
 def rebuild_indexes():
     """Rebuild indexes from scratch (nuclear option)"""
     print("[REBUILD] Rebuilding all indexes from memory files...")
-    
+
     # Remove all old indexes
     indexes_dir = memory.base_path / "indexes"
     if indexes_dir.exists():
         for idx_file in indexes_dir.glob("index_segment_*.json"):
             idx_file.unlink()
-    
+
     # Reset memory system
     memory.current_index_segment = 0
     memory.index = {"sessions": {}, "subjects": {}, "keywords": {}, "file_count": 0}
     memory.seen_hashes.clear()
-    
+
     # Scan all memory files and rebuild
     file_count = 0
     for session_dir in memory.base_path.glob("*/"):
         if session_dir.name in ["secrets", "weekly_summaries", "feelings", "indexes"]:
             continue
-        
+
         session_id = session_dir.name
         for subject_dir in session_dir.glob("*/"):
             subject = subject_dir.name
@@ -73,29 +73,29 @@ def rebuild_indexes():
                                 content = f.read()
                                 memory._update_index(session_id, subject, str(mem_file), content)
                                 file_count += 1
-                        except:
+                        except Exception:
                             pass
-    
+
     print(f"✅ Rebuilt indexes from {file_count} memory files")
 
 if __name__ == "__main__":
     print("🧹 AEGIS Memory Cleanup Utility")
     print("=" * 50)
-    
+
     # Show current stats
     show_index_stats()
-    
+
     print("\n🧹 Cleaning up...")
-    
+
     # Clean up old bloated index
     cleanup_bloated_index()
-    
+
     # Clean up old segments
     cleanup_old_indexes()
-    
+
     print("\n📊 After cleanup:")
     show_index_stats()
-    
+
     print("\n✅ Cleanup complete!")
     print("\nTo rebuild indexes from scratch, run:")
     print("  python cleanup_memory.py --rebuild")

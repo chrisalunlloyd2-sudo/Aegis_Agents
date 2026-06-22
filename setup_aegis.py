@@ -126,7 +126,7 @@ def create_consistency_db():
 
 def main():
     print_header("AEGIS-DIMON SYSTEM SETUP")
-    
+
     results = {
         "Python Version": check_python_version(),
         "Ollama": check_ollama(),
@@ -135,12 +135,12 @@ def main():
         "Database": check_database(),
         "Consistency DB": create_consistency_db()
     }
-    
+
     print_header("SETUP SUMMARY")
     for check, passed in results.items():
         status = "✅ PASS" if passed else "❌ FAIL"
         print(f"{status} - {check}")
-    
+
     if all(results.values()):
         print_header("SETUP COMPLETE")
         print_status("System is ready to use!", "OK")
@@ -151,7 +151,7 @@ def main():
     else:
         print_header("SETUP INCOMPLETE")
         print_status("Please resolve the failed checks above", "WARN")
-    
+
     return 0 if all(results.values()) else 1
 
 if __name__ == "__main__":

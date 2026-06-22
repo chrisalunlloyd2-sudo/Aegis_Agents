@@ -35,11 +35,11 @@ class DIMONNeuralBridge:
         """
         if len(embeddings) < self.target_dims:
             return embeddings
-        
+
         print(f"[DIMON] Pruning kernel: {embeddings.shape} -> target {self.target_dims}")
         self.pca = PCA(n_components=self.target_dims)
         canonical_embeddings = self.pca.fit_transform(embeddings)
-        
+
         variance_retained = sum(self.pca.explained_variance_ratio_)
         print(f"[DIMON] Pruning complete. Variance retained: {variance_retained:.2%}")
         return canonical_embeddings

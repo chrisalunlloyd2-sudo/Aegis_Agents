@@ -34,7 +34,7 @@ def omni_acceptor():
                 pyautogui.hotkey('ctrl', 'shift', 'enter') # Cursor Apply
                 pyautogui.hotkey('ctrl', 'enter')       # Generic Apply
                 pyautogui.press('enter')                # Generic OK
-            
+
             time.sleep(5) # High-frequency 5s pulse
         except Exception as e:
             pass
@@ -68,18 +68,18 @@ with gr.Blocks(theme=theme, title="AEGIS MOBILE PORTAL") as demo:
 # --- MAIN ---
 if __name__ == "__main__":
     log_event("AEGIS_REMOTE_GATEWAY: STARTING")
-    
+
     # 1. Start Omni-Acceptor
     threading.Thread(target=omni_acceptor, daemon=True).start()
-    
+
     # 2. Create Desktop Shortcut
     desktop = os.path.expanduser("~/Desktop")
     with open(os.path.join(desktop, "Aegis_Web_Portal.url"), "w") as f:
         f.write("[InternetShortcut]\nURL=http://localhost:7860")
-    
+
     # 3. Launch GUI
     print("[*] Launching Web UI for Phone Access...")
     # Opening browser locally for you to see
     subprocess.Popen(["start", "http://localhost:7860"], shell=True)
-    
+
     demo.launch(server_name="0.0.0.0", server_port=7860, share=False)

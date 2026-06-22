@@ -26,110 +26,110 @@ def get_db_connection():
 
 class AlgorithmKnowledgeBase:
     """Shared knowledge database for code and algorithms"""
-    
+
     @staticmethod
     def log_code_attempt(algorithm_name, language, code, status, notes):
         """Log when we try a new algorithm"""
         conn = get_db_connection()
         cur = conn.cursor()
-        
+
         try:
             cur.execute("""
-                INSERT INTO code_attempts 
+                INSERT INTO code_attempts
                 (algorithm_name, language, code_snippet, status, failure_reason, context)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
             """, (algorithm_name, language, code, status, notes, 'gemini_bridge'))
-            
+
             attempt_id = cur.fetchone()[0]
             conn.commit()
             return attempt_id
         finally:
             cur.close()
             conn.close()
-    
+
     @staticmethod
     def log_lesson_learned(problem, attempted_solution, result, insight):
         """Log lessons we discover"""
         conn = get_db_connection()
         cur = conn.cursor()
-        
+
         try:
             cur.execute("""
-                INSERT INTO lessons_learned 
+                INSERT INTO lessons_learned
                 (problem_statement, attempted_solution, result, key_insight)
                 VALUES (%s, %s, %s, %s)
                 RETURNING id
             """, (problem, attempted_solution, result, insight))
-            
+
             lesson_id = cur.fetchone()[0]
             conn.commit()
             return lesson_id
         finally:
             cur.close()
             conn.close()
-    
+
     @staticmethod
     def add_working_pattern(name, description, use_cases, effectiveness):
         """Add a pattern that works well"""
         conn = get_db_connection()
         cur = conn.cursor()
-        
+
         try:
             cur.execute("""
-                INSERT INTO working_patterns 
+                INSERT INTO working_patterns
                 (pattern_name, description, use_cases, effectiveness_score)
                 VALUES (%s, %s, %s, %s)
                 RETURNING id
             """, (name, description, use_cases, effectiveness))
-            
+
             pattern_id = cur.fetchone()[0]
             conn.commit()
             return pattern_id
         finally:
             cur.close()
             conn.close()
-    
+
     @staticmethod
     def get_effectiveness_dashboard():
         """Get dashboard view of what works best"""
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        
+
         try:
             cur.execute("SELECT * FROM algorithm_effectiveness_summary")
             return cur.fetchall()
         finally:
             cur.close()
             conn.close()
-    
+
     @staticmethod
     def get_failed_approaches():
         """Learn what NOT to do"""
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        
+
         try:
             cur.execute("""
-                SELECT * FROM failed_approaches 
-                ORDER BY attempted_at DESC 
+                SELECT * FROM failed_approaches
+                ORDER BY attempted_at DESC
                 LIMIT 50
             """)
             return cur.fetchall()
         finally:
             cur.close()
             conn.close()
-    
+
     @staticmethod
     def search_similar_problems(problem_description):
         """Find similar problems we've solved before"""
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        
+
         try:
             # Simple substring search (upgrade to vector search with pgvector)
             cur.execute("""
-                SELECT * FROM lessons_learned 
+                SELECT * FROM lessons_learned
                 WHERE problem_statement ILIKE %s
                 ORDER BY learned_at DESC
                 LIMIT 10
@@ -142,7 +142,7 @@ class AlgorithmKnowledgeBase:
 # API Routes (Add to Flask app)
 def register_kb_routes(app):
     """Register knowledge base routes"""
-    
+
     @app.route('/api/kb/log-attempt', methods=['POST'])
     def log_attempt():
         """Log a code attempt"""
@@ -161,7 +161,7 @@ def register_kb_routes(app):
             }), 201
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    
+
     @app.route('/api/kb/effectiveness', methods=['GET'])
     def get_effectiveness():
         """Get effectiveness dashboard"""
@@ -170,7 +170,7 @@ def register_kb_routes(app):
             return jsonify(data), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    
+
     @app.route('/api/kb/failed-approaches', methods=['GET'])
     def get_failed():
         """Get failed approaches to avoid"""
@@ -179,7 +179,7 @@ def register_kb_routes(app):
             return jsonify(data), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    
+
     @app.route('/api/kb/lessons', methods=['POST'])
     def add_lesson():
         """Log a lesson learned"""
@@ -197,7 +197,7 @@ def register_kb_routes(app):
             }), 201
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    
+
     @app.route('/api/kb/search', methods=['GET'])
     def search_kb():
         """Search knowledge base for similar problems"""

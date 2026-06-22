@@ -26,7 +26,7 @@ UI_HTML = """
     <title>Gemini Bridge</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #0f172a;
             color: #f1f5f9;
@@ -34,9 +34,9 @@ UI_HTML = """
         }
         .container { max-width: 1000px; margin: 0 auto; }
         h1 { margin-bottom: 1rem; color: #10b981; }
-        .nav { 
-            display: flex; 
-            gap: 1rem; 
+        .nav {
+            display: flex;
+            gap: 1rem;
             margin-bottom: 2rem;
             flex-wrap: wrap;
         }
@@ -109,7 +109,7 @@ UI_HTML = """
 <body>
     <div class="container">
         <h1>🌉 Gemini Bridge Control Center</h1>
-        
+
         <div class="nav">
             <button onclick="showPage('dashboard')" class="nav-btn active">Dashboard</button>
             <button onclick="showPage('task')" class="nav-btn">Submit Task</button>
@@ -212,7 +212,7 @@ UI_HTML = """
         function submitTask() {
             const prompt = document.getElementById('prompt').value;
             const route = document.getElementById('route').value;
-            
+
             if (!prompt) {
                 alert('Please enter a task');
                 return;
@@ -298,7 +298,7 @@ def task_handler():
         data = request.get_json()
         prompt = data.get('prompt')
         route = data.get('route_to', 'gemini')
-        
+
         task = {
             'id': len(tasks) + 1,
             'prompt': prompt,
@@ -308,10 +308,10 @@ def task_handler():
             'output': None
         }
         tasks.append(task)
-        
+
         # Async execution
         threading.Thread(target=execute_task, args=(task,), daemon=True).start()
-        
+
         return {'task_id': task['id'], 'status': 'submitted'}, 201
     else:
         return {'tasks': sorted(tasks, key=lambda x: x['created_at'], reverse=True)[:10]}
@@ -355,5 +355,5 @@ if __name__ == '__main__':
     print("   API: http://localhost:5000/api/health")
     print("\nNo dependencies required - Flask only!")
     print("=" * 60 + "\n")
-    
+
     app.run(host='0.0.0.0', port=5000, debug=False)

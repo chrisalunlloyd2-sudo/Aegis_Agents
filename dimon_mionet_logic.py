@@ -38,10 +38,10 @@ class AegisDIMON(nn.Module):
         super(AegisDIMON, self).__init__()
         # Branch 1: Encodes Code Topology (The 'Shape' of the logic)
         self.branch_shape = FNN([branch_sizes[0]] + [256, latent_dim])
-        
+
         # Branch 2: Encodes User Intent/Input Function
         self.branch_input = FNN([branch_sizes[1]] + [256, latent_dim])
-        
+
         # Trunk Net: Encodes AST Coordinates (The 'Domain')
         self.trunk = FNN([trunk_size] + [256, latent_dim])
 
@@ -49,14 +49,14 @@ class AegisDIMON(nn.Module):
         # 1. Pull back inputs into latent space
         b_shape = self.branch_shape(x_shape)
         b_input = self.branch_input(x_input)
-        
+
         # 2. Encode domain coordinates
         t_out = self.trunk(x_coords)
-        
+
         # 3. DIMON Interaction: Hadamard Product (Element-wise multiplication)
         # This is the 'Operator' mapping in Banach space
         res = b_shape * b_input * t_out
-        
+
         # 4. Summation to produce scalar logic signature
         return torch.sum(res, dim=1, keepdim=True)
 
@@ -85,7 +85,7 @@ class DIMONLogicEngine:
                 host=result.hostname,
                 port=result.port
             )
-        except:
+        except Exception:
             return None
 
     def extract_topology(self, source_code):
@@ -99,17 +99,17 @@ class DIMONLogicEngine:
             for child in ast.iter_child_nodes(node):
                 get_depth(child, current_depth + 1)
         get_depth(tree, 0)
-        
+
         # Feature vector: [Nodes, Depth, Complexity (approx as nodes/depth)]
         shape_vec = torch.tensor([[len(nodes), max_depth, len(nodes)/(max_depth or 1)]], dtype=torch.float32)
-        
+
         # Coordinate set for Trunk: [NodeIndex, NodeDepth]
         # For simplicity, we sample the first 100 nodes
         coords = []
         for i, node in enumerate(nodes[:100]):
             coords.append([i, 1.0]) # Simplified coordinate mapping
         coords = torch.tensor(coords, dtype=torch.float32)
-        
+
         return shape_vec, coords
 
     def learn_operator(self, source_name, source_code, input_embedding):
@@ -118,7 +118,7 @@ class DIMONLogicEngine:
         """
         shape_vec, coords = self.extract_topology(source_code)
         input_vec = torch.tensor(input_embedding, dtype=torch.float32).unsqueeze(0)
-        
+
         # Forward pass: Operator Synthesis
         # In a real training scenario, we'd have a target solution
         # Here we use the latent interaction as the 'Logic Signature'
@@ -127,7 +127,7 @@ class DIMONLogicEngine:
             b_s = self.model.branch_shape(shape_vec)
             b_i = self.model.branch_input(input_vec)
             t_o = self.model.trunk(coords).mean(dim=0) # Average over nodes
-            
+
             logic_manifold = b_s * b_i * t_o
             logic_signature = torch.sum(logic_manifold).item()
 
@@ -138,14 +138,14 @@ class DIMONLogicEngine:
     def _persist_to_timescale(self, source, manifold, signature):
         """Persists to TimescaleDB or SQLite Fallback (Unified Manifold)"""
         conn = self._get_timescale_conn()
-        
+
         # 1. TIMESCALEDB PATH
         if conn:
             try:
                 cur = conn.cursor()
                 manifold_blob = manifold.numpy().tobytes()
                 cur.execute("""
-                    INSERT INTO neural_manifolds 
+                    INSERT INTO neural_manifolds
                     (source_origin, ast_nodes, structural_depth, canonical_coords, operator_signature)
                     VALUES (%s, %s, %s, %s, %s)
                 """, (source, manifold.shape[1], 0, manifold_blob, f"LOGIC_{signature:.4f}"))
@@ -165,7 +165,7 @@ class DIMONLogicEngine:
             cur = sqlite_conn.cursor()
             manifold_blob = manifold.numpy().tobytes()
             cur.execute("""
-                INSERT INTO neural_manifolds 
+                INSERT INTO neural_manifolds
                 (source_origin, ast_nodes, structural_depth, canonical_coords, operator_signature, timestamp)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (source, manifold.shape[1], 0, str(manifold_blob), f"LOGIC_{signature:.4f}", datetime.utcnow()))

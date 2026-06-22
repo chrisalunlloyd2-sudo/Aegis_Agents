@@ -17,7 +17,7 @@ class DIMONOperatorEngine:
         """Run the physical schema if not exists"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Check if table exists, if not create it based on FastAPI schema + variance_score
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='neural_manifolds'")
         if not cursor.fetchone():
@@ -39,7 +39,7 @@ class DIMONOperatorEngine:
             columns = [info[1] for info in cursor.fetchall()]
             if 'variance_score' not in columns:
                 cursor.execute("ALTER TABLE neural_manifolds ADD COLUMN variance_score FLOAT")
-        
+
         conn.commit()
         conn.close()
 
@@ -63,15 +63,15 @@ class DIMONOperatorEngine:
         """Store the learned manifold in the SQL database"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Serialize coordinates as BLOB
         coords_blob = coords.tobytes()
-        
+
         cursor.execute("""
             INSERT INTO neural_manifolds (source_origin, canonical_coords, variance_score)
             VALUES (?, ?, ?)
         """, (source, coords_blob, variance))
-        
+
         conn.commit()
         conn.close()
         print(f"[DIMON] Manifold stored for '{source}'. Reference Domain active.")

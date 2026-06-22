@@ -98,7 +98,7 @@ def get_tools_prompt() -> str:
         for param, desc in info['parameters'].items():
             tools_desc += f"  - {param}: {desc}\n"
         tools_desc += "\n"
-    
+
     tools_desc += """
 To use a tool, respond with JSON in this format:
 ```json
@@ -125,19 +125,19 @@ def parse_tool_call(response: str) -> Dict[str, Any] | None:
             json_str = response.split("```")[1].split("```")[0].strip()
         else:
             json_str = response.strip()
-        
+
         return json.loads(json_str)
-    except:
+    except Exception:
         return None
 
 def execute_tool(tool_call: Dict[str, Any]) -> str:
     """Execute a tool call"""
     tool_name = tool_call.get("tool")
     parameters = tool_call.get("parameters", {})
-    
+
     if tool_name not in TOOL_FUNCTIONS:
         return f"❌ Unknown tool: {tool_name}"
-    
+
     try:
         func = TOOL_FUNCTIONS[tool_name]
         result = func(**parameters)

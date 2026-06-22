@@ -92,11 +92,11 @@ class DIMONCore:
         Forces the Student to stay within the probability manifold of the Sane Teacher.
         """
         print(f"[DISTIL] Re-Anchoring student {student_model} via KL-Divergence (T={temperature})...")
-        
+
         # In a real training loop, we would compute the KL loss here.
         # For our manifold, we use this as a 'Sanity Constraint' during synthetic generation.
         drift_penalty = "PENALIZE_DRIFT" # Signal to the training harness
-        
+
         # Log the distillation pair to the manifold with the KL anchor tag
         self.persist("KNOWLEDGE_DISTILLATION", torch.zeros(1, 128), f"KL_ANCHOR_{student_model}_{drift_penalty}")
         print(f"✅ [DISTIL] Student manifold anchored to sane distribution.")
@@ -122,7 +122,7 @@ class DIMONCore:
             cur = conn.cursor()
             blob = manifold_data.cpu().numpy().tobytes() if hasattr(manifold_data, 'cpu') else manifold_data.tobytes()
             cur.execute("""
-                INSERT INTO neural_manifolds 
+                INSERT INTO neural_manifolds
                 (source_origin, ast_nodes, structural_depth, canonical_coords, operator_signature, timestamp)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (source, 0, 0, str(blob), f"LOGIC_{signature}", datetime.utcnow()))

@@ -122,7 +122,7 @@ def get_memory_status():
         if timescale_memory.base_path.exists():
             return "ACTIVE"
         return "INITIALIZING"
-    except:
+    except Exception:
         return "OFFLINE"
 
 def sync_state(key, value):
@@ -161,7 +161,7 @@ async def perform_deep_research(objective: str):
         report = f"# [REPORT] DEEP RESEARCH: {objective}\n\n"
         for file_path, content in results:
             report += f"## Source: {file_path}\n{content[:300]}...\n\n"
-        
+
         report_path = f"C:/Users/viper/RESEARCH_REPORT_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
@@ -201,12 +201,12 @@ async def post_feedback(data: FeedbackData):
         new_fb = Feedback(message_id=data.message_id, score=data.score)
         session.add(new_fb)
         session.commit()
-        
+
         # If score is positive, catalog it for learning
         if data.score > 0:
             print(f"🌟 [LEARNING] Positive feedback for message {data.message_id}. Cataloged.")
             # Future: Copy message to learning collection in Qdrant
-            
+
         return {"status": "recorded"}
     finally:
         session.close()
@@ -246,7 +246,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
     message = data.message
     requested_mode = data.mode or global_config["kernel_mode"]
     session_id = request.client.host
-    
+
     if session_id not in chat_memory: chat_memory[session_id] = []
     sync_state(f"last_message_{session_id}", message)
 
@@ -263,18 +263,18 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                 prompt = parts[1]
             else:
                 prompt = message
-        
+
         # Determine model
         if not target_model:
             target_model = await agent_chooser(prompt)
-            
+
         print(f"🧠 [STREAM-INIT] Routing to {target_model}...")
-        
+
         async def event_generator():
             # Chain of Thought Reasoning
             cot_thoughts = f"Engaging local hardware ({target_model}). Initiating Chain of Thought... Mapping context... Analyzing objective..."
             yield json.dumps({"thoughts": cot_thoughts}) + "\n"
-            
+
             # Context Retrieval from Timescale Memory
             context_text = ""
             try:
@@ -284,7 +284,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                     context_text = f"\nRECENT CONTEXT:\n{context[:500]}"
             except Exception as e:
                 print(f"❌ Memory retrieval error: {e}")
-            
+
             # Store current message in timescale memory
             try:
                 timescale_memory.store(session_id, "chat", prompt)
@@ -295,7 +295,7 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
             # Add tool calling instructions to system prompt
             system_prompt = create_system_prompt()
             full_messages = [{'role': 'system', 'content': f'{system_prompt}\n\n{context_text}'}] + history + [{'role': 'user', 'content': prompt}]
-            
+
             full_reply = ""
             try:
                 def call_stream():
@@ -305,44 +305,44 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
                         "temperature": 0.6,
                         "num_predict": 4096
                     })
-                
+
                 response_gen = await asyncio.to_thread(call_stream)
                 for chunk in response_gen:
                     content = chunk['message']['content']
                     full_reply += content
                     yield json.dumps({"reply_chunk": content}) + "\n"
-                
+
                 # Check if response contains a tool call
                 tool_call = parse_tool_call(full_reply)
                 if tool_call:
                     yield json.dumps({"thoughts": f"Executing tool: {tool_call.get('tool')}..."}) + "\n"
                     tool_result = execute_tool(tool_call)
                     yield json.dumps({"reply_chunk": f"\n\n**Tool Result:**\n{tool_result}\n\n"}) + "\n"
-                    
+
                     # Add tool result to context and get follow-up response
                     tool_context = f"Tool '{tool_call.get('tool')}' executed. Result: {tool_result}\n\nPlease continue helping the user based on this result."
                     follow_up_messages = full_messages + [
                         {'role': 'assistant', 'content': full_reply},
                         {'role': 'user', 'content': tool_context}
                     ]
-                    
+
                     follow_up_gen = await asyncio.to_thread(lambda: ollama.chat(
                         model=target_model,
                         messages=follow_up_messages,
                         stream=True,
                         options={"num_ctx": 4096, "temperature": 0.6, "num_predict": 2048}
                     ))
-                    
+
                     for chunk in follow_up_gen:
                         content = chunk['message']['content']
                         full_reply += content
                         yield json.dumps({"reply_chunk": content}) + "\n"
-                
+
                 # Update Memory
                 chat_memory[session_id].append({"role": "user", "content": prompt})
                 chat_memory[session_id].append({"role": "assistant", "content": full_reply})
                 chat_memory[session_id] = chat_memory[session_id][-10:]
-                
+
                 # Persist to DB
                 db_session = SessionLocal()
                 try:
@@ -369,19 +369,19 @@ async def aegis_chat(data: ChatMessage, background_tasks: BackgroundTasks, reque
         def run_cli():
             return subprocess.run([gemini_cmd_path, "-p", message, "--approval-mode=yolo", "--resume", "latest"], capture_output=True, text=True, shell=False, timeout=600)
         result = await asyncio.to_thread(run_cli)
-        
+
         if "quota exceeded" in result.stdout.lower() or "429" in result.stderr:
             kernel_state.update({"local_fallback_active": True, "fallback_until": datetime.now() + timedelta(minutes=15)})
             return await aegis_chat(data, background_tasks, request)
-            
+
         def strip_ansi(text): return re.sub(r'\x1b\[[0-9;]*m', '', text)
         clean_res = strip_ansi(result.stdout).strip()
         chat_memory[session_id].append({"role": "user", "content": message})
         chat_memory[session_id].append({"role": "assistant", "content": clean_res})
         chat_memory[session_id] = chat_memory[session_id][-10:]
-        
+
         return {"reply": f"[CLOUD] {clean_res}", "thoughts": "Teacher manifold verified."}
-    except:
+    except Exception:
         return await aegis_chat(data, background_tasks, request)
 
 if __name__ == "__main__":

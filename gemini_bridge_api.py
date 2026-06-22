@@ -57,7 +57,7 @@ def neural_search():
     query = request.args.get('q', '')
     if not query:
         return jsonify({"results": []})
-    
+
     results = rag_system.retrieve_relevant_context(query)
     return jsonify({"results": results})
 
@@ -75,7 +75,7 @@ def receive_signal():
     """Receive red dot signal from phone CLI (phone_automation_script.js)"""
     data = request.get_json(force=True)
     signal = data.get("signal")
-    
+
     if signal == "red_dot_detected":
         red_dot_state["active"] = True
         red_dot_state["last_seen"] = datetime.now().isoformat()
@@ -83,7 +83,7 @@ def receive_signal():
         red_dot_state["y"] = data.get("y", 0)
         print(f"🔴 [SIGNAL] Red Dot detected on phone at ({red_dot_state['x']}, {red_dot_state['y']})")
         return jsonify({"status": "signal_received", "state": red_dot_state})
-    
+
     return jsonify({"status": "no_action"}), 200
 
 @app.route('/api/signal/status', methods=['GET'])
@@ -94,7 +94,7 @@ def get_signal_status():
         last_seen_dt = datetime.fromisoformat(red_dot_state["last_seen"])
         if datetime.now() - last_seen_dt > timedelta(seconds=10):
             red_dot_state["active"] = False
-            
+
     return jsonify(red_dot_state)
 
 # ===== REMOTE AGENT PIPE (Direct CLI Access) =====
@@ -104,11 +104,11 @@ def agent_command():
     prompt = data.get("prompt")
     if not prompt:
         return jsonify({"error": "No prompt"}), 400
-    
+
     # This executes a command as "Me" (the Gemini CLI)
     def run_agent():
         subprocess.run(["gemini", "-p", prompt, "--approval-mode=yolo"], shell=True)
-    
+
     threading.Thread(target=run_agent, daemon=True).start()
     return jsonify({"status": "Agent received command", "prompt": prompt})
 
@@ -147,10 +147,10 @@ def browser_open():
     data = request.get_json(force=True)
     url = data.get("url")
     search = data.get("search")
-    
+
     if search:
         url = f"https://www.google.com/search?q={urllib.parse.quote(search)}"
-    
+
     if url:
         if not url.startswith('http'):
             url = 'https://' + url
@@ -167,10 +167,10 @@ def browser_read():
     url = data.get("url")
     if not url:
         return jsonify({"error": "Missing URL"}), 400
-    
+
     if not url.startswith('http'):
         url = 'https://' + url
-        
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -179,10 +179,10 @@ def browser_read():
             text = page.locator("body").inner_text()
             title = page.title()
             browser.close()
-            
+
             if len(text) > 5000:
                 text = text[:5000] + "\n\n... (truncated)"
-            
+
             return jsonify({"title": title, "text": text})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -197,16 +197,16 @@ def _draw_dot(x, y, duration):
     try:
         root.attributes("-transparentcolor", "white")
         root.config(bg="white")
-    except:
+    except Exception:
         pass
-    
+
     r = 30
     root.geometry(f"{r*2}x{r*2}+{int(x)-r}+{int(y)-r}")
-    
+
     canvas = tk.Canvas(root, width=r*2, height=r*2, bg="white", highlightthickness=0)
     canvas.pack()
     canvas.create_oval(5, 5, r*2-5, r*2-5, fill="red", outline="white", width=4)
-    
+
     root.after(duration * 1000, root.destroy)
     root.mainloop()
 
@@ -250,7 +250,7 @@ def timescale_sync():
     data = request.get_json(force=True)
     raw_text = data.get('data', '')
     print(f"🏎️💨 [SYNC] Manifold received. Size: {len(raw_text)} chars.")
-    
+
     # Store in the Knowledge Base for RAG
     # We use 'gemini_files' collection for synced chat history
     rag_system.store_in_rag("gemini_files", raw_text, {"source": "Gemini App Sync", "type": "auto_rag"})
@@ -264,11 +264,11 @@ def save_research_note():
     data = request.get_json(force=True)
     content = data.get('content', '')
     source = data.get('source', 'Manual')
-    
+
     print(f"📌 [NOTE] Saving research insight to Timescale RAG...")
     # Explicitly store as a 'note' for prioritized RAG retrieval
     rag_system.store_in_rag("research_findings", content, {"source": source, "priority": "high", "type": "note"})
-    
+
     return jsonify({"status": "note_saved_to_rag"})
 
 @app.route('/api/logic/learn', methods=['POST'])
@@ -291,7 +291,7 @@ def get_logic_rules():
         # Retrieve the latest 5 learned rules from RAG
         rules_data, _ = rag_system.retrieve_context("learned_logic", "", limit=5)
         return jsonify({"rules": rules_data})
-    except:
+    except Exception:
         return jsonify({"rules": []})
 
 
@@ -389,7 +389,7 @@ def heartbeat_thread():
         try:
             collect_heartbeat()
             time.sleep(60)
-        except:
+        except Exception:
             time.sleep(60)
 
 threading.Thread(target=heartbeat_thread, daemon=True).start()
@@ -444,18 +444,18 @@ class TaskResource(Resource):
             data = request.get_json(force=True)
             prompt = data.get("prompt")
             route_to = data.get("route_to", "gemini")  # gemini, cursor, auto
-            
+
             if not prompt:
                 return {"error": "No prompt provided"}, 400
-            
+
             task = Task(prompt=prompt, route_to=route_to)
             session.add(task)
             session.commit()
             task_id = task.id
-            
+
             # Execute async
             threading.Thread(target=execute_task, args=(task_id,), daemon=True).start()
-            
+
             return {
                 "task_id": task_id,
                 "status": "submitted",
@@ -471,11 +471,11 @@ def execute_task(task_id):
         task = session.query(Task).filter(Task.id == task_id).first()
         if not task:
             return
-        
+
         task.status = 'running'
         task.started_at = datetime.utcnow()
         session.commit()
-        
+
         # Route to Gemini CLI
         if task.route_to in ['gemini', 'auto']:
             result = subprocess.run(
@@ -484,7 +484,7 @@ def execute_task(task_id):
                 text=True,
                 shell=True
             )
-            
+
             if result.returncode == 0:
                 task.status = 'completed'
                 task.output = result.stdout
@@ -502,7 +502,7 @@ def execute_task(task_id):
                 else:
                     task.status = 'failed'
                     task.error = result.stderr
-        
+
         task.completed_at = datetime.utcnow()
         session.commit()
     except Exception as e:
@@ -529,10 +529,10 @@ class HeartbeatResource(Resource):
             latest = session.query(Heartbeat).order_by(
                 Heartbeat.timestamp.desc()
             ).first()
-            
+
             if not latest:
                 return {"status": "no_data"}
-            
+
             return {
                 "timestamp": latest.timestamp.isoformat(),
                 "api_quota": latest.api_quota,
@@ -550,7 +550,7 @@ class ReminderResource(Resource):
             pending = session.query(Reminder).filter(
                 Reminder.status == 'pending'
             ).order_by(Reminder.trigger_time).all()
-            
+
             return {
                 "reminders": [
                     {
@@ -564,22 +564,22 @@ class ReminderResource(Resource):
             }
         finally:
             session.close()
-    
+
     def post(self):
         session = Session()
         try:
             data = request.get_json(force=True)
             message = data.get("message")
             hours_from_now = data.get("hours_from_now", 1)
-            
+
             if not message:
                 return {"error": "No message"}, 400
-            
+
             trigger_time = datetime.utcnow() + timedelta(hours=hours_from_now)
             reminder = Reminder(message=message, trigger_time=trigger_time)
             session.add(reminder)
             session.commit()
-            
+
             return {
                 "reminder_id": reminder.id,
                 "status": "created",
@@ -631,7 +631,7 @@ class ResearchResource(Resource):
                 }
         finally:
             session.close()
-    
+
     def post(self):
         session = Session()
         try:
@@ -640,15 +640,15 @@ class ResearchResource(Resource):
             query = data.get("query")
             scope = data.get("scope", "500")  # number of repos/items
             depth_hours = data.get("depth_hours", 24)  # 1-48
-            
+
             if not title or not query:
                 return {"error": "title and query required"}, 400
-            
+
             if depth_hours < 1 or depth_hours > 48:
                 return {"error": "depth_hours must be 1-48"}, 400
-            
+
             estimated_completion = datetime.utcnow() + timedelta(hours=depth_hours)
-            
+
             research = ResearchTask(
                 title=title,
                 query=query,
@@ -659,14 +659,14 @@ class ResearchResource(Resource):
             session.add(research)
             session.commit()
             research_id = research.id
-            
+
             # Start async research
             threading.Thread(
                 target=execute_research,
                 args=(research_id,),
                 daemon=True
             ).start()
-            
+
             return {
                 "research_id": research_id,
                 "status": "queued",
@@ -685,11 +685,11 @@ def execute_research(research_id):
         ).first()
         if not research:
             return
-        
+
         research.status = 'researching'
         research.started_at = datetime.utcnow()
         session.commit()
-        
+
         # Build research prompt for Gemini Ultra
         research_prompt = f"""
 DEEP RESEARCH REQUEST - {research.depth_hours} Hour Investigation
@@ -715,7 +715,7 @@ DELIVERABLES:
 
 Begin deep research now...
 """
-        
+
         # Call Gemini Ultra (or local fallback)
         try:
             # Try calling 'gemini' CLI first
@@ -726,7 +726,7 @@ Begin deep research now...
                 shell=True, # Critical for Windows
                 timeout=research.depth_hours * 3600 + 300
             )
-            
+
             if result.returncode == 0:
                 research.status = 'completed'
                 research.findings = result.stdout
@@ -734,19 +734,19 @@ Begin deep research now...
                 # Fallback to local Ollama (Canadian Ultra / Qwen)
                 print(f"⚠️ [RESEARCH] Gemini CLI failed, falling back to local MoE swarm...")
                 response = ollama.generate(
-                    model="kiwi_kiwi/qwen3.5-abliterated:9b", 
+                    model="kiwi_kiwi/qwen3.5-abliterated:9b",
                     prompt=research_prompt,
                     stream=False
                 )
                 research.status = 'completed'
                 research.findings = response['response']
-                
+
         except Exception as e:
             # Fallback to local Ollama on Exception
             print(f"⚠️ [RESEARCH] Exception during Gemini call: {e}. Using local Swarm.")
             try:
                 response = ollama.generate(
-                    model="kiwi_kiwi/qwen3.5-abliterated:9b", 
+                    model="kiwi_kiwi/qwen3.5-abliterated:9b",
                     prompt=research_prompt,
                     stream=False
                 )
@@ -755,23 +755,23 @@ Begin deep research now...
             except Exception as e2:
                 research.status = 'failed'
                 research.findings = f"Dual-Failure: Gemini({e}) | Ollama({e2})"
-        
+
         if research.status == 'completed':
             # Parse and extract key sections
             output = research.findings
-            
+
             # Extract methodology (first part of response)
             methodology_section = extract_section(output, "METHODOLOGY", "FINDINGS")
             research.methodology = methodology_section or "Aegis Neural Kernel deep analysis conducted"
-            
+
             # Extract recommendations (later part of response)
             recommendations_section = extract_section(output, "RECOMMENDATION", None)
             research.recommendations = recommendations_section or "See full findings"
-        
+
         research.completed_at = datetime.utcnow()
         session.commit()
         print(f"[RESEARCH #{research_id}] {research.status.upper()}")
-        
+
     except Exception as e:
         research.status = 'failed'
         research.findings = f"Exception: {str(e)}"
@@ -787,15 +787,15 @@ def extract_section(text, start_marker, end_marker):
         start_idx = text.find(start_marker)
         if start_idx == -1:
             return None
-        
+
         start_idx = text.find('\n', start_idx) + 1
-        
+
         if end_marker:
             end_idx = text.find(end_marker, start_idx)
             return text[start_idx:end_idx].strip() if end_idx != -1 else text[start_idx:].strip()
         else:
             return text[start_idx:].strip()
-    except:
+    except Exception:
         return None
 
 # Register API Routes
@@ -834,7 +834,7 @@ def aegis_chat():
     """
     data = request.get_json(force=True)
     message = data.get('message', '')
-    
+
     # 1. BROWSER AUTOMATION (O(1) Efficiency)
     if message.lower().startswith('open ') or message.lower().startswith('search '):
         query = message.split(' ', 1)[1]
@@ -844,7 +844,7 @@ def aegis_chat():
             url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
         else:
             url = query if query.startswith('http') else 'https://' + query
-        
+
         webbrowser.open(url)
         return jsonify({"reply": f"🏎️💨 [BROWSER AUTOMATION] I've opened the manifold at: {url}. Your VRAM is safe."})
 
@@ -856,25 +856,25 @@ def aegis_chat():
             with open(liquid_db_path, 'r') as f:
                 db = json.load(f)
                 liquid_context = " ".join(db)
-        except:
+        except Exception:
             pass
 
     # 3. AEGIS 180-IQ KERNEL (Me)
     print(f"🧠 [ROUTER] High-Logic routing to Aegis: {message}")
-    
+
     # Absolute path to the gemini batch file
     gemini_cmd_path = r"C:\Users\viper\AppData\Roaming\npm\gemini.cmd"
-    
+
     # Use shell=False with a list for direct execution
     args = [gemini_cmd_path, "-p", message, "--approval-mode=yolo", "--resume", "latest"]
-    
+
     try:
         # Standard timeout for complex tasks
         result = subprocess.run(args, capture_output=True, text=True, shell=False, timeout=300)
-        
+
         stdout = result.stdout or ""
         stderr = result.stderr or ""
-        
+
         # DEBUG LOGGING
         with open(r"C:\Users\viper\aegis_bridge_debug.log", "a", encoding="utf-8") as f:
             f.write(f"\n--- {datetime.now()} ---\n")
@@ -891,14 +891,14 @@ def aegis_chat():
 
         clean_stdout = strip_ansi(stdout)
         clean_stderr = strip_ansi(stderr)
-        
+
         # Combine for unfiltered manifold experience
         full_report = clean_stdout
         if clean_stderr:
             full_report += f"\n\n--- CLI STATUS ---\n{clean_stderr}"
-            
+
         return jsonify({"reply": full_report.strip() or "Aegis: Directive processed. (Manifold was silent)"})
-        
+
     except subprocess.TimeoutExpired:
         return jsonify({"reply": "⚠️ [TIMEOUT] Aegis is deep in the manifold. Try a simpler query."})
     except Exception as e:
@@ -922,5 +922,5 @@ if __name__ == '__main__':
     print("   Command: ngrok http 5000")
     print("   OR use Cloudflare Tunnel: cloudflared tunnel --url http://localhost:5000")
     print("=" * 70 + "\n")
-    
+
     app.run(host='0.0.0.0', port=5000, debug=False)

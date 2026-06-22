@@ -50,44 +50,44 @@ def execute_subtask(subtask: SubTask) -> str:
     In production, this would call actual APIs, web scrapers, etc.
     """
     print(f"   🔄 Executing: {subtask.description}")
-    
+
     # Simulate work
     time.sleep(1)
-    
+
     # Simulate different types of tasks
     if "search" in subtask.description.lower():
         # Simulate web crawling
         fake_url = f"https://example.com/{subtask.id}"
         fake_content = f"Research data for {subtask.description}. " * 50
-        
+
         chunk_id = crawler_db.store_crawled_data(
             url=fake_url,
             content=fake_content,
             metadata={"source": "demo", "task_id": subtask.id}
         )
-        
+
         return f"Crawled and stored data (chunk: {chunk_id})"
-    
+
     elif "correlation" in subtask.description.lower():
         # Simulate correlation analysis
         dataset_a = [random.uniform(10, 100) for _ in range(20)]
         dataset_b = [a * 1.5 + random.uniform(-5, 5) for a in dataset_a]
-        
+
         result = crawler_db.calculate_correlation(dataset_a, dataset_b)
-        
+
         return f"Correlation analysis: R={result['r_value']:.3f}, Strength={result['strength']}"
-    
+
     elif "identify unknown" in subtask.description.lower():
         # Simulate finding unknown correlations
         target_data = [random.uniform(50, 150) for _ in range(15)]
-        
+
         correlations = crawler_db.find_unknown_correlations(target_data)
-        
+
         if correlations:
             return f"Found {len(correlations)} potential correlations with unknown causes"
         else:
             return "No significant unknown correlations detected"
-    
+
     else:
         # Generic task completion
         return f"Completed: {subtask.description}"
@@ -98,26 +98,26 @@ def demo_simple_task():
     print("\n" + "="*60)
     print("DEMO 1: Simple Research Task")
     print("="*60)
-    
+
     job_id = agentic_controller.create_job(
         description="Research AI trends in healthcare",
         task_decomposer=decompose_research_task
     )
-    
+
     print(f"\n📋 Job created: {job_id}")
     print("Starting execution in background...\n")
-    
+
     agentic_controller.execute_job_async(job_id, execute_subtask)
-    
+
     # Monitor progress
     for _ in range(10):
         time.sleep(2)
         status = agentic_controller.get_job_status(job_id)
         print(f"Progress: {status['progress']} - Status: {status['status']}")
-        
+
         if status['status'] in ['completed', 'failed']:
             break
-    
+
     # Show final log
     print("\n📊 Final Job Log:")
     log = agentic_controller.get_job_log(job_id)
@@ -129,35 +129,35 @@ def demo_complex_task():
     print("\n" + "="*60)
     print("DEMO 2: Complex Semiconductor Research (8 steps)")
     print("="*60)
-    
+
     job_id = agentic_controller.create_job(
         description="Research global semiconductor trends in 5 languages",
         task_decomposer=decompose_research_task
     )
-    
+
     print(f"\n📋 Job created: {job_id}")
     print("This will take ~16 seconds (8 steps × 2 sec each)")
     print("Starting execution in background...\n")
-    
+
     agentic_controller.execute_job_async(job_id, execute_subtask)
-    
+
     # Monitor with detailed updates
     while True:
         time.sleep(3)
         status = agentic_controller.get_job_status(job_id)
-        
+
         print(f"\n⏱️  Progress: {status['progress']}")
         print(f"   Current: {status['current_subtask']}")
         print(f"   Status: {status['status']}")
-        
+
         if status['summary']:
             print(f"   {status['summary']}")
-        
+
         if status['status'] in ['completed', 'failed']:
             break
-    
+
     print("\n✅ Job completed!")
-    
+
     # Show database stats
     print("\n📊 Crawler Database Stats:")
     stats = crawler_db.get_stats()
@@ -170,11 +170,11 @@ def demo_pruning():
     print("\n" + "="*60)
     print("DEMO 3: Database Pruning")
     print("="*60)
-    
+
     print("\n🧹 Running database cleanup...")
     pruned = crawler_db.prune_old_data(force=True)
     print(f"   Pruned {pruned} old chunks")
-    
+
     stats = crawler_db.get_stats()
     print(f"\n📊 Updated Stats:")
     print(f"   Remaining chunks: {stats['total_chunks']}")
@@ -185,7 +185,7 @@ def demo_job_management():
     print("\n" + "="*60)
     print("DEMO 4: Job Management")
     print("="*60)
-    
+
     print("\n📋 All Jobs:")
     jobs = agentic_controller.list_jobs()
     for job in jobs:
@@ -206,19 +206,19 @@ if __name__ == "__main__":
 ║  • Automatic pruning                                        ║
 ╚══════════════════════════════════════════════════════════════╝
     """)
-    
+
     # Run demos
     demo_simple_task()
     time.sleep(2)
-    
+
     demo_complex_task()
     time.sleep(2)
-    
+
     demo_job_management()
     time.sleep(1)
-    
+
     demo_pruning()
-    
+
     print("\n" + "="*60)
     print("✅ All demos completed!")
     print("="*60)

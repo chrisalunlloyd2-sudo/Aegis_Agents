@@ -18,7 +18,7 @@ try:
     from qdrant_client import QdrantClient
     from qdrant_client.models import Distance, VectorParams, PointStruct
     QDRANT_AVAILABLE = True
-except:
+except Exception:
     QDRANT_AVAILABLE = False
 
 load_dotenv()
@@ -27,17 +27,17 @@ import ollama
 
 class EnterpriseRAGSystem:
     """Enterprise-level RAG (Retrieval Augmented Generation) system"""
-    
+
     def __init__(self):
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         self.base_url = "https://generativelanguage.googleapis.com/v1beta/models"
         self.model = "gemini-pro"
         self.embedding_model = "nomic-embed-text"
-        
+
         # Vector DB for RAG
         self.vector_db_path = Path.home() / "qdrant_storage"
         self.vector_db_path.mkdir(exist_ok=True)
-        
+
         if QDRANT_AVAILABLE:
             try:
                 # Use in-memory if local storage is continuously locked, or force a new path
@@ -49,10 +49,10 @@ class EnterpriseRAGSystem:
                 self.init_collections()
         else:
             self.vector_client = None
-        
+
         self.task_history = {}
         self.extracted_variables = {}
-    
+
     def init_collections(self):
         """Initialize Qdrant collections for RAG"""
         collections = [
@@ -63,11 +63,11 @@ class EnterpriseRAGSystem:
             ("work_patterns", "User work patterns and habits"),
             ("dimon_logic_rules", "Learned logic and behavioral rules")
         ]
-        
+
         for collection_name, description in collections:
             try:
                 self.vector_client.get_collection(collection_name)
-            except:
+            except Exception:
                 # Create collection if not exists
                 # nomic-embed-text has 768 dimensions
                 self.vector_client.create_collection(
@@ -90,10 +90,10 @@ class EnterpriseRAGSystem:
         """Store information in RAG vector database"""
         if not self.vector_client:
             return False
-        
+
         try:
             vector = self.get_embedding(text)
-            
+
             point = PointStruct(
                 id=int(time.time() * 1000000) % (2**31),
                 vector=vector,
@@ -103,7 +103,7 @@ class EnterpriseRAGSystem:
                     "timestamp": datetime.now().isoformat()
                 }
             )
-            
+
             self.vector_client.upsert(
                 collection_name=collection,
                 points=[point]
@@ -112,22 +112,22 @@ class EnterpriseRAGSystem:
         except Exception as e:
             print(f"❌ RAG storage error: {e}")
             return False
-    
+
     def retrieve_relevant_context(self, query: str, collection: str = "user_profile") -> List[Dict]:
         """Retrieve relevant context from RAG using semantic search (v1.17+ API)"""
         if not self.vector_client:
             return []
-        
+
         try:
             query_vector = self.get_embedding(query)
-            
+
             # Using query_points for version 1.17+
             results = self.vector_client.query_points(
                 collection_name=collection,
                 query=query_vector,
                 limit=5
             ).points
-            
+
             return [
                 {
                     "text": point.payload.get("text"),
@@ -140,7 +140,7 @@ class EnterpriseRAGSystem:
             print(f"❌ RAG retrieval error: {e}")
             return []
 
-    
+
     def complete_all_tasks(self) -> Dict:
         """Complete all pending tasks"""
         results = {
@@ -149,11 +149,11 @@ class EnterpriseRAGSystem:
             "tasks": [],
             "timestamp": datetime.now().isoformat()
         }
-        
+
         # Mark all tasks as completed
         todos = [
             "adhd-autism-ux",
-            "build-vue-ui", 
+            "build-vue-ui",
             "deep-research",
             "heartbeat-scheduler",
             "mobile-android",
@@ -162,7 +162,7 @@ class EnterpriseRAGSystem:
             "test-and-deploy",
             "upgrade-flask-api"
         ]
-        
+
         for todo_id in todos:
             results["tasks"].append({
                 "id": todo_id,
@@ -170,7 +170,7 @@ class EnterpriseRAGSystem:
                 "timestamp": datetime.now().isoformat()
             })
             results["completed"] += 1
-        
+
         return results
 
 # Initialize system removed to prevent lock collisions

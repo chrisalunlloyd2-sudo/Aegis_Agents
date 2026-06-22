@@ -15,13 +15,13 @@ def solve_logic_cube(A, target, max_iterations=1000):
     """
     n, k = A.shape
     _, m = target.shape
-    
+
     # Initialize X (the left side we are brute forcing)
     X = np.zeros((k, m), dtype=int)
-    
+
     current_best_X = X.copy()
     min_error = calculate_hamming_distance(boolean_multiply(A, X), target)
-    
+
     if min_error == 0:
         return X, 0
 
@@ -35,7 +35,7 @@ def solve_logic_cube(A, target, max_iterations=1000):
                 X[r, c] = 1 - X[r, c]
                 new_C = boolean_multiply(A, X)
                 new_error = calculate_hamming_distance(new_C, target)
-                
+
                 if new_error < min_error:
                     min_error = new_error
                     current_best_X = X.copy()
@@ -43,17 +43,17 @@ def solve_logic_cube(A, target, max_iterations=1000):
                 else:
                     # Revert flip if no improvement
                     X[r, c] = 1 - X[r, c]
-        
+
         # Brute Force Jump (Stochastic Escape)
         if not improved:
             # If stuck, randomize a small sub-block to explore new state space
             jump_size = max(1, k // 4)
             r_idx = np.random.randint(0, k - jump_size + 1)
             X[r_idx:r_idx+jump_size, :] = np.random.randint(0, 2, (jump_size, m))
-            
+
         if min_error == 0:
             return X, i
-            
+
     return current_best_X, max_iterations
 
 if __name__ == "__main__":
@@ -64,13 +64,13 @@ if __name__ == "__main__":
         [0, 1, 1], # Path 2
         [1, 1, 0]  # Path 3
     ])
-    
+
     target = np.array([
         [1], # Want state 1
         [1], # Want state 2
         [0]  # Want state 3
     ])
-    
+
     X_solution, iters = solve_logic_cube(A, target)
     print(f"Solved in {iters} iterations.")
     print("X Matrix (The Steps on the Left):")
