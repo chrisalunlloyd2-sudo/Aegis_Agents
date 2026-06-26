@@ -1,421 +1,422 @@
-# 🛡️ AEGIS-DIMON Hybrid AI System
+# Aegis_Agents
 
-**The Canadian Ultra Manifold** - Advanced AI system combining local Gemma 2B with cloud Gemini Pro, featuring revolutionary timescale memory architecture.
+> Advanced Analytics System - Real-time algorithm evolution tracking - ML model performance dashboards - Predictive success scoring - Auto-optimization recommendations - Live competitor analysis
+
+*Auto-generated 2026-06-26 10:04 from source — branch `main`, 25 Python modules, 27 other files.*
+
+## Architecture
+
+```
+  .director_payload.md
+  .env.template
+  .gitignore
+  AEGIS_INDEXER.py
+  AEGIS_Launch.bat
+  AEGIS_MANIFOLD_BLUEPRINT.txt
+  AGENTIC_SYSTEM_GUIDE.md
+  Aegis_Igniter.py
+  Blueprint.md
+  CHANGELOG.md
+  DIAGNOSTIC_REPORT.md
+  DIMON_CORE_DISTILLED.py
+  gemini_extension/
+    content.js
+    manifest.json
+    notes_inject.js
+```
+
+## Dependencies
+
+External packages imported by this project:
+
+`PIL`, `codecs`, `ddgs`, `dotenv`, `dspy`, `engine`, `fastapi`, `flask`, `flask_cors`, `flask_restful`, `gradio`, `html`, `numpy`, `ollama`, `playwright`, `psycopg2`, `pyautogui`, `pydantic`, `qdrant_client`, `requests`, `sklearn`, `sqlalchemy`, `statistics`, `tkinter`, `torch`, `uvicorn`, `webbrowser`
+
+## How to run
+
+Executable entry points (have a `__main__` block):
+
+- `python AEGIS_INDEXER.py`
+- `python Aegis_Igniter.py`
+- `python DIMON_CORE_DISTILLED.py`
+- `python Engine.py`
+- `python GEMINIX_ORCHESTRATOR.py`
+- `python MOLTBOOK_STRESS_TEST.py`
+- `python aegis_dspy.py`
+- `python agentic_demo.py`
+- `python cleanup_memory.py`
+- `python dimon_mionet_logic.py`
+- `python dimon_neural_bridge.py`
+- `python dimon_operator_engine.py`
+
+## Modules
+
+### `AEGIS_INDEXER.py`
+
+- `index_workspace()`
+
+### `Aegis_Igniter.py`
+
+- `ignite()`
+
+### `DIMON_CORE_DISTILLED.py`
+
+- **class `FNN`**
+  - methods: `forward`
+- **class `AegisDIMON`**
+  - methods: `forward`
+- **class `DIMONCore`**
+  - methods: `program_of_thoughts`, `rlcf_judge`, `knowledge_distillation`, `extract_topology`, `persist`, `process_file`
+
+### `Engine.py`
+
+- **class `AegisMasterEngine`**
+  - methods: `read_local_file`, `fetch_cloud_memory`, `_bg_sync`, `sync_to_cloud`, `web_search`, `ask`
+- **class `AegisGUI`**
+  - methods: `append_to_chat`, `send_message`, `process_ai_response`, `display_ai_response`
+
+### `GEMINIX_ORCHESTRATOR.py`
+
+- `get_timestamp()`
+- `run_diagnostic()` — Runs a full system check and returns a summary list.
+- `generate_report(checks, url)`
+- `main()`
+
+### `MOLTBOOK_STRESS_TEST.py`
+
+- `log(test_name, status, details)`
+- `test_fastapi_health()`
+- `test_database_wal()`
+- `test_vram_fencing()`
+- `test_manifold_persistence()`
+- `main()`
+
+### `advanced_analytics.py`
+
+Advanced Analytics System
+- Real-time algorithm evolution tracking
+- ML model performance dashboards
+- Predictive success scoring
+- Auto-optimization recommendations
+- Live competitor analysis
+
+- **class `AlgorithmEvolutionTracker`** — Track how algorithms improve over time
+  - methods: `track_algorithm_performance`, `predict_next_iteration`
+- **class `MLModelDashboard`** — Track model performance metrics
+  - methods: `log_model_run`, `compare_models`
+- **class `PredictiveSuccessScoring`** — Predict success of new algorithms before running
+  - methods: `score_algorithm`, `recommend_best_approach`
+- **class `AutoOptimization`** — Automatically suggest optimizations
+  - methods: `analyze_bottleneck`, `generate_optimization_report`
+- **class `CompetitorAnalysis`** — Analyze competitor solutions and techniques
+  - methods: `analyze_technique`, `compare_to_competitors`
+- `register_analytics_routes(app)` — Add analytics endpoints to Flask app
+
+### `aegis_dspy.py`
+
+- **class `AegisLogicSignature`** — 180-IQ Symbolic Mapping.
+- **class `AegisOptimizer`**
+  - methods: `forward`
+- `initialize_dspy(model_name)` — Initializes the DSPy compiler with the Gemini Teacher.
+
+### `agentic_crawler_db.py`
+
+Agentic Crawler Database v2.0
+- Human-readable 5KB text chunks from web crawling
+- Query-based web search and page crawling
+- Boolean search with per-interaction NOT tables
+- Correlation analysis (R-value calculation)
+- Automatic pruning for expired and unused data
+
+- **class `_HTMLContentExtractor`** — Extract visible text and links without extra dependencies.
+  - methods: `handle_starttag`, `handle_endtag`, `handle_data`, `get_text`
+- **class `AgenticCrawlerDB`**
+  - methods: `_load_metadata`, `_save_metadata`, `_normalize_url`, `_extract_domain`, `_split_content`, `_clean_search_result_url`, `_strip_html`, `_fetch_text_resource`, `_fetch_page`
+
+### `agentic_demo.py`
+
+Agentic System Demo
+Demonstrates the full agentic loop with web crawling and correlation analysis
+
+- `decompose_research_task(description)` — Break down a complex research task into subtasks
+- `execute_subtask(subtask)` — Execute a single subtask
+- `demo_simple_task()` — Demo: Simple 4-step task
+- `demo_complex_task()` — Demo: Complex multi-language research
+- `demo_pruning()` — Demo: Database pruning
+- `demo_job_management()` — Demo: Job listing and management
+
+### `agentic_loop_controller.py`
+
+Agentic Loop Controller v1.0
+- Multi-step task decomposition (Plan → Execute → Evaluate → Summarize)
+- Asynchronous background execution with job tracking
+- Recursive summarization to prevent context drift
+- Integration with crawler database
+
+- **class `TaskStatus`**
+- **class `SubTask`**
+- **class `AgenticJob`**
+- **class `AgenticLoopController`**
+  - methods: `_load_jobs`, `_subtask_to_dict`, `_subtask_from_dict`, `_save_job`, `create_job`, `execute_job_async`, `_execute_job_loop`, `_evaluate_result`, `_create_recursive_summary`
+
+### `cleanup_memory.py`
+
+AEGIS Memory Cleanup Utility
+Cleans up bloated indexes and removes old memory files
+
+- `cleanup_bloated_index()` — Clean up the old bloated global_index.json
+- `cleanup_old_indexes()` — Remove old index segments, keep only last 10
+- `show_index_stats()` — Show current index statistics
+- `rebuild_indexes()` — Rebuild indexes from scratch (nuclear option)
+
+### `dimon_mionet_logic.py`
+
+- **class `FNN`** — Standard Feed-Forward Neural Network for Branch/Trunk
+  - methods: `forward`
+- **class `AegisDIMON`** — True MIONet implementation for DIMON (Diffeomorphic Mapping Operator Learning).
+  - methods: `forward`
+- **class `DIMONLogicEngine`** — Orchestrates the mathematical logic recognition using MIONet.
+  - methods: `_get_timescale_conn`, `extract_topology`, `learn_operator`, `_persist_to_timescale`
+
+### `dimon_neural_bridge.py`
+
+- **class `DIMONNeuralBridge`** — Implements DIMON-inspired Neural Database management with PCA-based kernel pruning.
+  - methods: `fetch_embeddings`, `prune_kernel`, `update_neural_db`
+
+### `dimon_operator_engine.py`
+
+- **class `DIMONOperatorEngine`** — Implements the Diffeomorphic Mapping (phi_theta) from Nature 2024.
+  - methods: `_init_db`, `map_to_reference`, `_store_manifold`
+
+### `gemini_bridge.py`
+
+- `log_event(msg)`
+- `omni_acceptor()`
+- `chat_interface(user_input, history)`
+
+### `gemini_bridge_api.py`
+
+Gemini Bridge API Server
+Unified control interface for Gemini CLI and Cursor with TimescaleDB logging
+
+- **class `Task`**
+- **class `Heartbeat`**
+- **class `Reminder`**
+- **class `ResearchTask`**
+- **class `ResearchNote`**
+- **class `RagSync`**
+- **class `HealthResource`**
+  - methods: `get`
+- **class `TaskResource`**
+  - methods: `get`, `post`
+- **class `HeartbeatResource`**
+  - methods: `get`
+- **class `ReminderResource`**
+  - methods: `get`, `post`
+- **class `ResearchResource`**
+  - methods: `get`, `post`
+- `check_auth()` — Skip auth in test mode
+- `neural_search()`
+- `receive_signal()` — Receive red dot signal from phone CLI (phone_automation_script.js)
+- `get_signal_status()` — Check current status of the red dot signal
+- `agent_command()`
+- `desktop_screenshot()`
+- `desktop_click()`
+- `browser_open()`
+- `browser_read()`
+- `desktop_dot()`
+- `mobile_dot()` — HOMEOSTASIS 1: The Android Red Dot Trigger.
+- `timescale_sync()` — CANADIAN ULTRA: The TimescaleDB Sync Tunnel.
+- `save_research_note()` — Saves a specific high-value note from the Gemini App to the RAG.
+- `learn_logic()` — DIMON LEARNING: Stores a permanent behavioral/logical rule for the AI.
+- `get_logic_rules()` — Retrieves all learned logic rules to inject into the App's context.
+
+### `gemini_bridge_api_fast.py`
+
+- **class `NeuralManifold`**
+- **class `Task`**
+- **class `Conversation`**
+- **class `Feedback`**
+- **class `ChatMessage`**
+- **class `SignalData`**
+- **class `FeedbackData`**
+- `set_sqlite_pragma(dbapi_connection, connection_record)`
+- `get_memory_status()` — Check timescale memory system status
+- `sync_state(key, value)` — Persists global state to consistency.db
+- `perform_deep_research(objective)`
+- `agent_chooser(prompt)` — Always route to gemma2:2b as per user requirement - single model system.
+- `get_ui()`
+- `health()`
+- `post_feedback(data)`
+- `get_signal_status()`
+- `receive_signal(data)`
+- `delete_conversation()`
+- `aegis_chat(data, background_tasks, request)`
+
+### `gemini_bridge_minimal.py`
+
+MINIMAL Gemini Bridge - Zero dependencies except Flask
+Works offline, no database required initially
+
+- `index()`
+- `ui()`
+- `health()`
+- `task_handler()`
+- `get_task(task_id)`
+- `heartbeat()`
+- `execute_task(task)`
+
+### `gemini_bridge_rag.py`
+
+Enterprise RAG System for Gemini Bridge
+Real-time Task Tracking, Deep Research Orchestration, and File Integration
+Uses: Qdrant (Vector DB), Gemini API, LLM Embeddings for context
+
+- **class `EnterpriseRAGSystem`** — Enterprise-level RAG (Retrieval Augmented Generation) system
+  - methods: `init_collections`, `get_embedding`, `store_in_rag`, `retrieve_relevant_context`, `complete_all_tasks`
+
+### `gemma_tools.py`
+
+Tool Calling System for Gemma 2B
+Enables Gemma to use tools through structured prompts
+
+- `create_file(path, content)` — Create a file with content
+- `read_file(path)` — Read file contents
+- `list_directory(path)` — List directory contents
+- `execute_command(command)` — Execute shell command
+- `search_web(query)` — Search web (placeholder)
+- `get_tools_prompt()` — Generate prompt describing available tools
+- `parse_tool_call(response)` — Parse tool call from Gemma's response
+- `execute_tool(tool_call)` — Execute a tool call
+- `create_system_prompt()` — Create system prompt with tool instructions
+
+### `knowledge_base_api.py`
+
+Algorithm & Code Knowledge Base API
+Extends gemini_bridge_api.py with TimescaleDB integration
+Tracks what worked, what didn't, and why
+
+- **class `AlgorithmKnowledgeBase`** — Shared knowledge database for code and algorithms
+  - methods: `log_code_attempt`, `log_lesson_learned`, `add_working_pattern`, `get_effectiveness_dashboard`, `get_failed_approaches`, `search_similar_problems`
+- `get_db_connection()` — Connect to TimescaleDB knowledge base
+- `register_kb_routes(app)` — Register knowledge base routes
+
+### `logic_cube_solver.py`
+
+- `boolean_multiply(A, B)` — Boolean matrix multiplication (AND then OR).
+- `calculate_hamming_distance(C, target)` — Hamming distance between current result C and target B.
+- `solve_logic_cube(A, target, max_iterations)` — Solves A * X = target for X in a Boolean field.
+
+### `setup_aegis.py`
+
+AEGIS-DIMON Setup Script
+Automated setup and verification for the AEGIS system
+
+- `print_header(text)`
+- `print_status(message, status)`
+- `check_python_version()`
+- `check_ollama()`
+- `check_env_file()`
+- `install_requirements()`
+- `check_database()`
+- `create_consistency_db()`
+- `main()`
+
+### `timescale_memory.py`
+
+AEGIS Timescale Memory System v2.0
+Optimized with deduplication and segmented indexing
+- Boolean logic and operators only (no NLP)
+- 2KB max per file, 60 files per hour
+- Segmented indexes (10KB max per segment)
+- Deduplication to prevent repeats
+- Daily secrets file for APIs/links/variables
+- Weekly summaries compressed to 1KB "feelings" file
+
+- **class `TimescaleMemory`**
+  - methods: `_get_current_index_file`, `_load_current_index`, `_save_index`, `_load_seen_hashes`, `_content_hash`, `_is_duplicate`, `_get_time_path`, `_compress_to_boolean`, `store`
+
+## Public API index
+
+| Module | Function | Signature |
+|--------|----------|-----------|
+| `AEGIS_INDEXER` | `index_workspace` | `index_workspace()` |
+| `Aegis_Igniter` | `ignite` | `ignite()` |
+| `GEMINIX_ORCHESTRATOR` | `generate_report` | `generate_report(checks, url)` |
+| `GEMINIX_ORCHESTRATOR` | `get_timestamp` | `get_timestamp()` |
+| `GEMINIX_ORCHESTRATOR` | `main` | `main()` |
+| `GEMINIX_ORCHESTRATOR` | `run_diagnostic` | `run_diagnostic()` |
+| `MOLTBOOK_STRESS_TEST` | `log` | `log(test_name, status, details)` |
+| `MOLTBOOK_STRESS_TEST` | `main` | `main()` |
+| `MOLTBOOK_STRESS_TEST` | `test_database_wal` | `test_database_wal()` |
+| `MOLTBOOK_STRESS_TEST` | `test_fastapi_health` | `test_fastapi_health()` |
+| `MOLTBOOK_STRESS_TEST` | `test_manifold_persistence` | `test_manifold_persistence()` |
+| `MOLTBOOK_STRESS_TEST` | `test_vram_fencing` | `test_vram_fencing()` |
+| `advanced_analytics` | `register_analytics_routes` | `register_analytics_routes(app)` |
+| `aegis_dspy` | `initialize_dspy` | `initialize_dspy(model_name)` |
+| `agentic_demo` | `decompose_research_task` | `decompose_research_task(description)` |
+| `agentic_demo` | `demo_complex_task` | `demo_complex_task()` |
+| `agentic_demo` | `demo_job_management` | `demo_job_management()` |
+| `agentic_demo` | `demo_pruning` | `demo_pruning()` |
+| `agentic_demo` | `demo_simple_task` | `demo_simple_task()` |
+| `agentic_demo` | `execute_subtask` | `execute_subtask(subtask)` |
+| `cleanup_memory` | `cleanup_bloated_index` | `cleanup_bloated_index()` |
+| `cleanup_memory` | `cleanup_old_indexes` | `cleanup_old_indexes()` |
+| `cleanup_memory` | `rebuild_indexes` | `rebuild_indexes()` |
+| `cleanup_memory` | `show_index_stats` | `show_index_stats()` |
+| `gemini_bridge` | `chat_interface` | `chat_interface(user_input, history)` |
+| `gemini_bridge` | `log_event` | `log_event(msg)` |
+| `gemini_bridge` | `omni_acceptor` | `omni_acceptor()` |
+| `gemini_bridge_api` | `aegis_chat` | `aegis_chat()` |
+| `gemini_bridge_api` | `agent_command` | `agent_command()` |
+| `gemini_bridge_api` | `browser_open` | `browser_open()` |
+| `gemini_bridge_api` | `browser_read` | `browser_read()` |
+| `gemini_bridge_api` | `check_auth` | `check_auth()` |
+| `gemini_bridge_api` | `collect_heartbeat` | `collect_heartbeat()` |
+| `gemini_bridge_api` | `desktop_click` | `desktop_click()` |
+| `gemini_bridge_api` | `desktop_dot` | `desktop_dot()` |
+| `gemini_bridge_api` | `desktop_screenshot` | `desktop_screenshot()` |
+| `gemini_bridge_api` | `execute_research` | `execute_research(research_id)` |
+| `gemini_bridge_api` | `execute_task` | `execute_task(task_id)` |
+| `gemini_bridge_api` | `extract_section` | `extract_section(text, start_marker, end_marker)` |
+| `gemini_bridge_api` | `get_logic_rules` | `get_logic_rules()` |
+| `gemini_bridge_api` | `get_signal_status` | `get_signal_status()` |
+| `gemini_bridge_api` | `heartbeat_thread` | `heartbeat_thread()` |
+| `gemini_bridge_api` | `index` | `index()` |
+| `gemini_bridge_api` | `learn_logic` | `learn_logic()` |
+| `gemini_bridge_api` | `mobile_dot` | `mobile_dot()` |
+| `gemini_bridge_api` | `neural_search` | `neural_search()` |
+| `gemini_bridge_api` | `receive_signal` | `receive_signal()` |
+| `gemini_bridge_api` | `save_research_note` | `save_research_note()` |
+| `gemini_bridge_api` | `timescale_sync` | `timescale_sync()` |
+| `gemini_bridge_api` | `trigger_cursor_handover` | `trigger_cursor_handover(task_message)` |
+| `gemini_bridge_api` | `ui` | `ui()` |
+| `gemini_bridge_api_fast` | `aegis_chat` | `aegis_chat(data, background_tasks, request)` |
+| `gemini_bridge_api_fast` | `agent_chooser` | `agent_chooser(prompt)` |
+| `gemini_bridge_api_fast` | `delete_conversation` | `delete_conversation()` |
+| `gemini_bridge_api_fast` | `get_memory_status` | `get_memory_status()` |
+| `gemini_bridge_api_fast` | `get_signal_status` | `get_signal_status()` |
+| `gemini_bridge_api_fast` | `get_ui` | `get_ui()` |
+| `gemini_bridge_api_fast` | `health` | `health()` |
+| `gemini_bridge_api_fast` | `perform_deep_research` | `perform_deep_research(objective)` |
+| `gemini_bridge_api_fast` | `post_feedback` | `post_feedback(data)` |
+
+## Status
+
+- Branch: `main`
+- Last commit: 2026-06-21 19:44:15 -0600
+- File types: .md ×11, .txt ×5, .js ×3, .template ×1, .bat ×1, .html ×1, .log ×1, .db ×1
+
+### Recent commits
+```
+7baba9b [Moe autonomous] Aegis_Agents 2026-06-21 19:44
+f04a613 [Moe autonomous] Aegis_Agents 2026-06-21 19:00
+74d955c [Moe autonomous] Aegis_Agents 2026-06-19 20:56
+e594065 Delete daily rituals from VIPER_PERSONAL_PROMPT.txt
+a41b31e Enterprise: Automated Project Sync
+a6f3e5b docs: Add docstrings to crawler database
+0e55cde fix: Add null check for recursive summary
+8d065c3 feat: Add Agentic Loop System with 100+ step reasoning - Implemented agentic_loop_controller.py for multi-step task decomposition - Added agentic_crawler_db.py with Pearson R-value correlation analysis - Created comprehensive documentation (AGENTIC_SYSTEM_GUIDE.md) - Fixed Cloudflare Tunnel Error 1033 - Replaced vector RAG with timescale memory system - Added automatic pruning (30-day retention) - Implemented recursive summarization to prevent context drift - Updated README.md and AEGIS_MANIFOLD_BLUEPRINT.txt
+```
 
 ---
-
-## 🚀 Quick Start
-
-```bash
-# Run the launcher (will request admin privileges for Ollama)
-AEGIS_Launch.bat
-```
-
-The system will:
-1. ✅ Request administrator privileges (for Ollama)
-2. ✅ Start Ollama with Gemma 2B model
-3. ✅ Launch FastAPI backend on port 5005
-4. ✅ Create Cloudflare tunnel for public access
-5. ✅ Initialize timescale memory system
-6. ✅ Open browser to your public URL
-
----
-
-## 🧠 Revolutionary Timescale Memory System
-
-**AEGIS now uses a hierarchical time-series file-based memory system instead of traditional vector RAG.**
-
-### Key Features:
-- ✅ **Boolean Logic Only** - No NLP overhead, pure operators and equations
-- ✅ **5KB Max Per File** - 60 heartbeat files per hour
-- ✅ **Hierarchical Storage** - `session/subject/date/hour/` structure
-- ✅ **Indexed Search** - Fast lookups without vector embeddings
-- ✅ **Daily Secrets** - Secure storage for APIs, links, variables
-- ✅ **Weekly Summaries** - 7-day summaries compressed to 1KB "feelings" files
-- ✅ **Overflow Protection** - Files >5KB dumped to desktop
-
-### Memory Structure:
-```
-C:/Users/viper/Aegis_Memory/
-├── session_id/
-│   └── subject/
-│       └── 2026-04-17/
-│           └── 02/
-│               ├── 20260417_023000_hb01.txt
-│               ├── 20260417_023100_hb02.txt
-│               └── ... (up to 60 per hour)
-├── secrets/
-│   └── secrets_2026-04-17.json
-├── weekly_summaries/
-│   └── summary_2026-W16.txt (5KB max)
-├── feelings/
-│   └── feelings_2026-W16.txt (1KB compressed)
-└── global_index.json
-```
-
-### How It Works:
-
-1. **Storage**: Every interaction is compressed to boolean logic and stored
-   ```python
-   timescale_memory.store(session_id, subject, content)
-   ```
-
-2. **Retrieval**: Indexed search by session, subject, keywords, or time
-   ```python
-   results = timescale_memory.search("query", time_range="last_hour")
-   ```
-
-3. **Context**: Chain of Thought gets recent context automatically
-   ```python
-   context = timescale_memory.get_context(session_id, subject, max_files=10)
-   ```
-
-4. **Secrets**: Store sensitive data daily
-   ```python
-   timescale_memory.store_secrets({"GEMINI_API_KEY": "...", "urls": [...]})
-   ```
-
-5. **Weekly Summaries**: Automatic compression of 7 days into 1KB
-   ```python
-   timescale_memory.create_weekly_summary()  # Runs automatically
-   feelings = timescale_memory.search_weeks_ago(2)  # Search 2 weeks ago
-   ```
-
----
-
-## 🏗️ System Architecture
-
-### Core Components:
-
-1. **DIMON Core** (`DIMON_CORE_DISTILLED.py`)
-   - Differential Manifold Operator Network
-   - Handles complex reasoning and logic transformations
-
-2. **Gemma 2B Local Model**
-   - Runs via Ollama with admin privileges
-   - Primary inference engine for local processing
-   - Tool calling support via `gemma_tools.py`
-
-3. **Gemini Pro Cloud Backup**
-   - Fallback for complex queries
-   - Automatic failover when local model unavailable
-
-4. **Timescale Memory** (`timescale_memory.py`)
-   - Replaces traditional vector RAG
-   - File-based hierarchical storage
-   - Boolean logic compression
-   - Indexed search system
-
-5. **FastAPI Backend** (`gemini_bridge_api_fast.py`)
-   - REST API on port 5005
-   - Streaming responses
-   - Session management
-   - Memory integration
-
----
-
-## 📡 API Endpoints
-
-### Chat Endpoint
-```bash
-POST /api/aegis/chat
-{
-  "message": "Your query here",
-  "mode": "auto"  # auto, local, or cloud
-}
-```
-
-### Memory Search
-```bash
-GET /api/memory/search?query=keyword&time_range=last_week
-```
-
-### Secrets Management
-```bash
-POST /api/secrets
-{
-  "GEMINI_API_KEY": "your-key",
-  "custom_var": "value"
-}
-```
-
-### Weekly Summary
-```bash
-POST /api/memory/weekly-summary
-# Creates 5KB summary + 1KB feelings file
-```
-
----
-
-## 🔧 Configuration
-
-### Environment Variables (.env)
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-DATABASE_URL=sqlite:///gemini_bridge.db
-```
-
-### Memory Settings (timescale_memory.py)
-```python
-max_chunk_size = 5 * 1024  # 5KB per file
-heartbeat_counter = 60     # Files per hour
-base_path = "C:/Users/viper/Aegis_Memory"
-```
-
----
-
-## 🛠️ Advanced Features
-
-### 1. **Chain of Thought Reasoning**
-Preserved from original system - uses timescale memory for context:
-```
-Engaging local hardware (gemma2:2b)
-→ Initiating Chain of Thought
-→ Mapping context from memory
-→ Analyzing objective
-→ Generating response
-```
-
-### 2. **Tool Calling**
-Gemma 2B can execute system tools:
-- File operations
-- Web searches
-- Code execution
-- System commands
-
-### 3. **Automatic Failover**
-- Local model fails → Cloud backup
-- Memory system unavailable → Graceful degradation
-- Ollama down → Auto-restart with admin privileges
-
-### 4. **Public Access**
-Cloudflare tunnel provides secure public URL:
-- URL saved to OneDrive: `CLOUDFLARE.txt`
-- Automatic HTTPS
-- No port forwarding needed
-
----
-
-## 📊 Memory System Benefits
-
-### vs Traditional Vector RAG:
-
-| Feature | Vector RAG | Timescale Memory |
-|---------|-----------|------------------|
-| Storage | Embeddings in DB | Text files |
-| Search | Cosine similarity | Indexed keywords |
-| Speed | Slow (vector ops) | Fast (file system) |
-| Size | Large (embeddings) | Small (compressed) |
-| Overhead | High (NLP) | Minimal (boolean) |
-| Transparency | Black box | Human readable |
-| Backup | Complex | Simple file copy |
-
-### Advantages:
-- ✅ **10x faster** search with indexed files
-- ✅ **90% smaller** storage footprint
-- ✅ **Human readable** - inspect any memory file
-- ✅ **No dependencies** - no vector DB required
-- ✅ **Automatic overflow** - large data goes to desktop
-- ✅ **Time-aware** - natural chronological organization
-- ✅ **Weekly compression** - automatic summarization
-
----
-
-## 🔐 Security
-
-### Admin Privileges
-- Ollama runs with elevated permissions for hardware access
-- Other components run with normal user privileges
-- UAC prompt on startup
-
-### Secrets Management
-- Daily secrets files encrypted at rest
-- API keys never logged
-- Automatic rotation support
-
-### Memory Privacy
-- All memory stored locally
-- No cloud sync (unless configured)
-- Easy to purge: delete memory folder
-
----
-
-## 🐛 Troubleshooting
-
-### Issue: "Ollama not starting"
-```bash
-# Manually start Ollama with admin
-Run as Administrator: C:\Program Files\Ollama\ollama.exe serve
-```
-
-### Issue: "Memory system offline"
-```bash
-# Check memory path exists
-dir C:\Users\viper\Aegis_Memory
-# Recreate if needed - system auto-initializes
-```
-
-### Issue: "API 500 errors"
-```bash
-# Clear Python cache
-Remove-Item -Recurse -Force __pycache__
-# Restart API server
-```
-
-### Issue: "Cloudflare tunnel fails"
-```bash
-# Check tunnel log
-type C:\Users\viper\tunnel.log
-# Restart launcher
-```
-
----
-
-## 📈 Performance
-
-### Benchmarks (Gemma 2B on RTX 4090):
-- **Inference**: ~50 tokens/sec
-- **Memory Search**: <10ms for 1000 files
-- **Storage**: <1ms per heartbeat
-- **Context Retrieval**: <5ms for 10 files
-
-### Resource Usage:
-- **RAM**: ~4GB (Ollama + Python)
-- **VRAM**: ~2GB (Gemma 2B)
-- **Disk**: ~100MB/day (memory files)
-- **CPU**: <5% idle, ~30% during inference
-
----
-
-## 🔄 Updates & Maintenance
-
-### Daily Tasks (Automatic):
-- ✅ Create daily secrets file
-- ✅ Rotate memory files
-- ✅ Compress old data
-
-### Weekly Tasks (Automatic):
-- ✅ Generate 7-day summary
-- ✅ Create feelings file
-- ✅ Archive old memories
-
-### Manual Maintenance:
-```bash
-# Clear old memories (>30 days)
-python -c "from timescale_memory import memory; memory.cleanup(days=30)"
-
-# Rebuild index
-python -c "from timescale_memory import memory; memory._save_index()"
-
-# Export memories
-python -c "from timescale_memory import memory; memory.export_to_json('backup.json')"
-```
-
----
-
-## 📚 Documentation
-
-- `QUICK_START.md` - Getting started guide
-- `TOOL_CALLING_GUIDE.md` - Tool usage documentation
-- `DIAGNOSTIC_REPORT.md` - System diagnostics
-- `AEGIS_MANIFOLD_BLUEPRINT.txt` - Architecture details
-
----
-
-## 🤝 Contributing
-
-This is a personal AI system. For questions or issues:
-1. Check `DIAGNOSTIC_REPORT.md`
-2. Review `api.log`
-3. Inspect memory files in `C:/Users/viper/Aegis_Memory`
-
----
-
-## 📝 License
-
-Personal use only. Canadian Ultra Manifold © 2026
-
----
-
-## 🤖 Agentic Loop System (NEW!)
-
-**Revolutionary multi-step reasoning with 4-100+ sequential operations without context drift.**
-
-### Key Features:
-- ✅ **Task Decomposition** - Break complex tasks into 4-100+ subtasks
-- ✅ **Asynchronous Execution** - Background processing with job tracking
-- ✅ **Recursive Summarization** - Prevents context drift every 5 steps
-- ✅ **Crawler Database** - 5KB organized chunks with correlation analysis
-- ✅ **R-Value Calculation** - Find correlations and unknown causes
-- ✅ **Automatic Pruning** - Remove data older than 30 days
-
-### Quick Start:
-```bash
-# Run the agentic demo
-python agentic_demo.py
-
-# See full documentation
-cat AGENTIC_SYSTEM_GUIDE.md
-```
-
-### Architecture:
-```
-Plan → Execute → Evaluate → Summarize
-  ↓       ↓         ↓          ↓
-Step 1  Step 2   Step 3    Summary (every 5 steps)
-  ↓       ↓         ↓          ↓
-... continues for 100+ steps without losing context
-```
-
-### Files:
-- `agentic_loop_controller.py` - Main controller with async execution
-- `agentic_crawler_db.py` - Web crawler database with correlation analysis
-- `agentic_demo.py` - Working demonstration
-- `AGENTIC_SYSTEM_GUIDE.md` - Complete 429-line guide
-
----
-
-## 🔧 Recent Updates (2026-04-17)
-
-### ✅ Fixed Issues:
-1. **Cloudflare Tunnel Error 1033** - Restarted tunnel, new URL generated
-2. **Stale Python Bytecode** - Cleared `__pycache__` causing NameError
-3. **API Scanner Loop** - Removed infinite loop checking non-existent endpoints
-4. **Admin Privileges** - Added UAC elevation to `AEGIS_Launch.bat` for Ollama
-5. **Memory System** - Replaced vector RAG with timescale file-based system
-
-### 🆕 New Features:
-1. **Agentic Loop Controller** - 100+ step reasoning without context drift
-2. **Crawler Database** - 5KB chunks with R-value correlation analysis
-3. **Automatic Pruning** - Regular database cleanup (30-day retention)
-4. **Recursive Summarization** - Context preservation every 5 steps
-5. **Unknown Cause Detection** - Find hidden correlations in data
-
-### 📊 Performance Improvements:
-- Memory search: <10ms for 1000 files
-- Storage: <1ms per heartbeat
-- Context retrieval: <5ms for 10 files
-- Inference: ~50 tokens/sec (Gemma 2B on RTX 4090)
-
----
-
-## 🎯 Roadmap
-
-- [x] Timescale memory system
-- [x] Admin privileges for Ollama
-- [x] Boolean logic compression
-- [x] Weekly summaries
-- [x] Agentic loop architecture
-- [x] Crawler database with correlation analysis
-- [x] Automatic pruning system
-- [ ] Multi-user support
-- [ ] Cloud sync option
-- [ ] Mobile app
-- [ ] Voice interface
-- [ ] Distributed agentic execution
-- [ ] GPU-accelerated correlation analysis
-
----
-
-**Made with 🇨🇦 by Viper**
-</content>
+*README generated by `readme_generator.py` (Viper). Deterministic — derived from source, not LLM prose.*
