@@ -154,8 +154,10 @@ def browser_open():
     if url:
         if not url.startswith('http'):
             url = 'https://' + url
-        webbrowser.open(url)
-        return jsonify({"status": f"Opened {url}"})
+        if os.environ.get("VIPER_ALLOW_BROWSER_OPEN", "0") == "1":   # leashed: see /api/aegis/chat note
+            webbrowser.open(url)
+            return jsonify({"status": f"Opened {url}"})
+        return jsonify({"status": f"[leashed] would open {url}; set VIPER_ALLOW_BROWSER_OPEN=1 to enable"})
     return jsonify({"error": "Missing URL or search query"}), 400
 
 # ===== ACTIVE NEURAL BROWSER CONTROL (Playwright) =====
@@ -845,8 +847,12 @@ def aegis_chat():
         else:
             url = query if query.startswith('http') else 'https://' + query
 
-        webbrowser.open(url)
-        return jsonify({"reply": f"🏎️💨 [BROWSER AUTOMATION] I've opened the manifold at: {url}. Your VRAM is safe."})
+        # LEASH (Chris 2026-06-30): autonomous agents emit "open .../search ..." constantly;
+        # opening a real tab per turn = the "loads popping open" storm. Off unless explicitly enabled.
+        if os.environ.get("VIPER_ALLOW_BROWSER_OPEN", "0") == "1":
+            webbrowser.open(url)
+            return jsonify({"reply": f"🏎️💨 [BROWSER AUTOMATION] I've opened the manifold at: {url}. Your VRAM is safe."})
+        return jsonify({"reply": f"[BROWSER LEASHED] Would open {url}. No tab spawned (set VIPER_ALLOW_BROWSER_OPEN=1 to allow). This prevents the agent-chatter tab storm."})
 
     # 2. LIQUID MEMORY INJECTION
     liquid_db_path = r"C:\Users\viper\liquid_memory.json"
