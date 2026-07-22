@@ -195,32 +195,36 @@
                     const decoder = new TextDecoder();
                     let fullText = "";
                     let thoughts = "";
-                    contentArea.innerHTML = "";
+                    // PERSISTENT elements — a thoughts line + the reply bubble. The bubble is NEVER
+                    // wiped once built, so a late 'thoughts' ("Done · saved") can't erase the answer.
+                    contentArea.innerHTML = `<span class="thoughts"></span><div class="bubble">...</div>`;
+                    const thoughtsEl = contentArea.querySelector('.thoughts');
+                    const bubbleEl = contentArea.querySelector('.bubble');
 
+                    let sseBuf = "";
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
-                        
-                        const chunk = decoder.decode(value);
-                        const lines = chunk.split('\n');
-                        
+
+                        // BUFFER partial lines: read() splits JSON lines mid-way under slow streaming;
+                        // parsing a fragment throws and drops the token. Keep the incomplete tail.
+                        sseBuf += decoder.decode(value, { stream: true });
+                        const lines = sseBuf.split('\n');
+                        sseBuf = lines.pop();
+
                         for (const line of lines) {
                             if (!line.trim()) continue;
                             try {
                                 const data = JSON.parse(line);
                                 if (data.thoughts) {
-                                    thoughts = data.thoughts;
-                                    contentArea.innerHTML = `<span class="thoughts">${thoughts}</span><div class="bubble">...</div>`;
+                                    thoughtsEl.innerText = data.thoughts;   // update thoughts ONLY
                                 }
                                 if (data.reply_chunk) {
                                     fullText += data.reply_chunk;
-                                    const bubble = contentArea.querySelector('.bubble') || document.createElement('div');
-                                    bubble.className = 'bubble';
-                                    bubble.innerHTML = fullText.replace(/\n/g, '<br>');
-                                    if (!contentArea.querySelector('.bubble')) contentArea.appendChild(bubble);
+                                    bubbleEl.innerHTML = fullText.replace(/\n/g, '<br>');  // append into the SAME bubble
                                 }
                                 if (data.error) {
-                                    contentArea.innerHTML += `<div class="bubble" style="color: #8B0000;">⚠️ ${data.error}</div>`;
+                                    bubbleEl.innerHTML += `<span style="color: #8B0000;">⚠️ ${data.error}</span>`;
                                 }
                             } catch (e) {
                                 if (line.startsWith("[CLOUD]")) {
