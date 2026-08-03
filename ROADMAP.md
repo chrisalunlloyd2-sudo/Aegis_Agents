@@ -1,0 +1,94 @@
+﻿# Roadmap: Aegis_Agents
+
+## Phases
+
+### harvested (0/86 - 0%)
+- [ ] sure they run autonomously for almost aweek and check in on them this is going to be a day in day out process for a while I think
+- [ ] ing now, this system will be the user end and web interaction with aegis autonomy, the other system can act live telling aegis what to say and think and do this way we have a multi machine information
+- [ ] it clear aegis will not be started until we are done the games as well
+- [ ] nt care why. LOL. This is the model all the others failed.  it wasnt entirely on purpose this is good
+- [ ] sure we have organisational control so we never get lost in project thoughts?
+- [ ] ITIVE SEQUENCINE EVERYTHING IS ABSOLUTELY PERFECT AEGIS'S EMAIL THIS MORENING WAS PERFECT!!! TES RACE CONDITION SOLVER!!!! THIS IS PERFECT!!!
+- [ ] notification>
+- [ ] id>b7ywtjsre</task-id>
+- [ ] cs: document 1 public API in aegis_warmkeep.py (autonomous, logic-verified)
+- [ ] cs: document 4 public API in db-init.py (autonomous, logic-verified)
+- [ ] cs: document 3 public API in axiom_grid.py (autonomous, logic-verified)</event>
+- [ ] es have to work with the system, see what heavy stuff is and investigate for sure, then continue with slow aegis if we cant make better, nothing should be weighing the system that much unless we have 
+- [ ] whatever aegis needs
+- [ ] not use curl):
+- [ ] ", body: {...}}` — create a routine
+- [ ] ", "Edit", "Glob", "Grep"]
+- [ ] .data.uuid` yourself
+- [ ] ts and spaces are NOT allowed
+- [ ] g and Slack me errors," the agent needs both Datadog and Slack connectors. Cross-reference against the list above and warn if any required service isn't connected. If a needed connector is missing, di
+- [ ] Routine — Required Fields
+- [ ] Routine — Optional Fields
+- [ ] a new routine:
+- [ ] . What repo(s)? What task? Remind them that the agent runs in the cloud — it won't have access to their local machine, local files, or local environment variables
+- [ ] an effective agent prompt. Good prompts are:
+- [ ] and what success looks like
+- [ ] **Choose the model** — Default to `claude-sonnet-5`. Tell the user which model you're defaulting to and ask if they want a different one
+- [ ] **Review and confirm** — Show the full configuration before creating. Let them adjust
+- [ ] it** — Call `RemoteTrigger` with `action: "create"` and show the result. The response includes the routine ID. Always output a link at the end: `https://claude.ai/code/routines/{ROUTINE_ID}`
+- [ ] List routines first so they can pick one
+- [ ] Ask what they want to change
+- [ ] Show current vs proposed value
+- [ ] Confirm and update
+- [ ] Fetch and display in a readable format
+- [ ] run, repo(s)
+- [ ] List routines if they haven't specified which one
+- [ ] Confirm which routine
+- [ ] Execute and confirm
+- [ ] whatever aegis needs
+- [ ] not use curl):
+- [ ] ", body: {...}}` — create a routine
+- [ ] ", "Edit", "Glob", "Grep"]
+- [ ] .data.uuid` yourself
+- [ ] ts and spaces are NOT allowed
+- [ ] g and Slack me errors," the agent needs both Datadog and Slack connectors. Cross-reference against the list above and warn if any required service isn't connected. If a needed connector is missing, di
+- [ ] Routine — Required Fields
+- [ ] Routine — Optional Fields
+- [ ] a new routine:
+- [ ] . What repo(s)? What task? Remind them that the agent runs in the cloud — it won't have access to their local machine, local files, or local environment variables
+- [ ] an effective agent prompt. Good prompts are:
+- [ ] and what success looks like
+- [ ] **Choose the model** — Default to `claude-sonnet-5`. Tell the user which model you're defaulting to and ask if they want a different one
+- [ ] **Review and confirm** — Show the full configuration before creating. Let them adjust
+- [ ] it** — Call `RemoteTrigger` with `action: "create"` and show the result. The response includes the routine ID. Always output a link at the end: `https://claude.ai/code/routines/{ROUTINE_ID}`
+- [ ] List routines first so they can pick one
+- [ ] Ask what they want to change
+- [ ] Show current vs proposed value
+- [ ] Confirm and update
+- [ ] Fetch and display in a readable format
+- [ ] run, repo(s)
+- [ ] List routines if they haven't specified which one
+- [ ] Confirm which routine
+- [ ] Execute and confirm
+- [ ] whatever aegis needs
+- [ ] notification>
+- [ ] id>b2fd9untb</task-id>
+- [ ] s\b2fd9untb.output</output-file>
+- [ ] notification>
+- [ ] id>bkfyvijz4</task-id>
+- [ ] s\bkfyvijz4.output</output-file>
+- [ ] notification>
+- [ ] id>b2k2ze3u1</task-id>
+- [ ] s\b2k2ze3u1.output</output-file>
+- [ ] notification>
+- [ ] id>bw7q1c1ku</task-id>
+- [ ] s\bw7q1c1ku.output</output-file>
+- [ ] notification>
+- [ ] id>bn5dk6yxp</task-id>
+- [ ] s\bn5dk6yxp.output</output-file>
+- [ ] notification>
+- [ ] id>bnjxuodwk</task-id>
+- [ ] s\bnjxuodwk.output</output-file>
+- [ ] and the SuggestionRegistry persistence fix" completed (exit code 0)</summary>
+- [ ] notification>
+- [ ] id>bxz0sfwmo</task-id>
+- [ ] s\bxz0sfwmo.output</output-file>
+- [ ] " completed (exit code 0)</summary>
+
+---
+*Auto-generated by Viper @ 2026-08-03 12:02*
